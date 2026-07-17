@@ -382,6 +382,7 @@ const (
 	BifrostContextKeyTempTokenScope                      BifrostContextKey = "bifrost-temp-token-scope"       // string (set by auth middleware when a temp token authorized the request - names the scope from the temptoken registry)
 	BifrostContextKeyTempTokenResourceID                 BifrostContextKey = "bifrost-temp-token-resource-id" // string (set by auth middleware alongside the scope - the resource_id the token is bound to, e.g. an OAuth flow ID for mcp_auth)
 	BifrostContextKeyAsyncWebhookEndpoint                BifrostContextKey = "bifrost-async-webhook-endpoint" // string (webhook endpoint name to notify when an async job finishes - carried as-is from the x-bf-async-webhook header; the submit path resolves and validates it before the job is created)
+	BifrostContextKeyOpenAIRegion                        BifrostContextKey = "bifrost-openai-region"          // string (set by bifrost - DO NOT SET THIS MANUALLY) - effective OpenAI regional-processing region (key override or provider default) for this attempt; read by the OpenAI provider to select the regional base URL
 )
 
 const (
@@ -1694,6 +1695,11 @@ type RoutingInfo struct {
 	Provider ModelProvider `json:"provider,omitempty"`
 	Model    string        `json:"model,omitempty"` // model name passed to this attempt's key
 	Key      string        `json:"key,omitempty"`   // KeyName of the key used
+	// Region is the regional-processing region this attempt was routed to
+	// (e.g. "eu" for OpenAI's eu.api.openai.com). Empty = default (US /
+	// unspecified). Sourced from the provider's configured region, not echoed
+	// by the provider response, and used to select region-specific pricing.
+	Region string `json:"region,omitempty"`
 
 	// Populated only when Model matched an entry in this key's Aliases map
 	ResolvedKeyAlias *ResolvedKeyAlias `json:"resolved_key_alias,omitempty"`
