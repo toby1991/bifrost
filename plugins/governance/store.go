@@ -448,6 +448,7 @@ func (gs *LocalGovernanceStore) BumpBudgetUsage(ctx context.Context, budgetID st
 			gs.logger.Error("budget %s reset target not converging after %d resets; applying inline reset to avoid request-path spin", budgetID, resetAttempts)
 			clone.CurrentUsage = 0
 			clone.LastReset = *target
+			clone.ConsumeOverrideCycle()
 			gs.LastDBUsagesBudgetsMu.Lock()
 			gs.LastDBUsagesBudgets[budgetID] = 0
 			gs.LastDBUsagesBudgetsMu.Unlock()
@@ -574,6 +575,7 @@ func (gs *LocalGovernanceStore) ResetBudgetAt(ctx context.Context, budgetID stri
 		clone := *old
 		clone.CurrentUsage = 0
 		clone.LastReset = newLastReset
+		clone.ConsumeOverrideCycle()
 		if gs.budgets.CompareAndSwap(budgetID, raw, &clone) {
 			return &clone, true
 		}
@@ -1069,13 +1071,14 @@ func (gs *LocalGovernanceStore) CheckBudget(ctx context.Context, entityWiseBudge
 			if !exists {
 				baseline = 0
 			}
+			effectiveMaxLimit := budget.EffectiveMaxLimit()
 			gs.logger.Debug("LocalStore CheckBudget: Checking %s budget %s: local=%.4f, remote=%.4f, total=%.4f, limit=%.4f",
-				entity, budget.ID, budget.CurrentUsage, baseline, budget.CurrentUsage+baseline, budget.MaxLimit)
+				entity, budget.ID, budget.CurrentUsage, baseline, budget.CurrentUsage+baseline, effectiveMaxLimit)
 			// Check if current usage (local + remote baseline) exceeds budget limit
-			if budget.CurrentUsage+baseline >= budget.MaxLimit {
+			if budget.CurrentUsage+baseline >= effectiveMaxLimit {
 				gs.logger.Debug("LocalStore CheckBudget: Budget %s EXCEEDED", budget.ID)
 				return DecisionBudgetExceeded, fmt.Errorf("%s budget exceeded: %.4f >= %.4f dollars",
-					entity, budget.CurrentUsage+baseline, budget.MaxLimit)
+					entity, budget.CurrentUsage+baseline, effectiveMaxLimit)
 			}
 		}
 	}
@@ -2037,19 +2040,27 @@ func (gs *LocalGovernanceStore) ResetExpiredBudgets(ctx context.Context, resetBu
 	if len(resetBudgets) > 0 && gs.configStore != nil {
 		if err := gs.configStore.ExecuteTransaction(ctx, func(tx *gorm.DB) error {
 			for _, budget := range resetBudgets {
-				// Direct UPDATE only resets current_usage and last_reset
-				// This prevents overwriting max_limit or reset_duration that may have been changed by other nodes/requests
+				// Persist reset state plus the finite-override lifecycle without replacing unrelated budget config.
+				// The last_reset predicate keeps the write monotonic: a snapshot that lost
+				// the persistence race to a newer reset must not restore older lifecycle
+				// state (extra override cycles would survive a restart otherwise).
 				result := tx.WithContext(ctx).
 					Session(&gorm.Session{SkipHooks: true}).
 					Model(&configstoreTables.TableBudget{}).
-					Where("id = ?", budget.ID).
+					Where("id = ? AND last_reset < ?", budget.ID, budget.LastReset).
 					Updates(map[string]interface{}{
-						"current_usage": budget.CurrentUsage,
-						"last_reset":    budget.LastReset,
+						"current_usage":             budget.CurrentUsage,
+						"last_reset":                budget.LastReset,
+						"override_amount":           budget.OverrideAmount,
+						"override_mode":             budget.OverrideMode,
+						"override_cycles_remaining": budget.OverrideCyclesRemaining,
 					})
 
 				if result.Error != nil {
 					return fmt.Errorf("failed to reset budget %s: %w", budget.ID, result.Error)
+				}
+				if result.RowsAffected == 0 {
+					gs.logger.Debug("skipping stale reset persistence for budget %s: database already holds newer reset state", budget.ID)
 				}
 			}
 			return nil
@@ -2236,11 +2247,33 @@ func (gs *LocalGovernanceStore) DumpBudgets(ctx context.Context, baselines map[s
 					Where("id = ?", inMemoryBudget.ID).
 					Updates(map[string]interface{}{
 						"current_usage": newUsage,
-						"last_reset":    inMemoryBudget.LastReset,
 					})
 
 				if result.Error != nil {
 					return fmt.Errorf("failed to update budget %s: %w", inMemoryBudget.ID, result.Error)
+				}
+
+				// Reset lifecycle state (last_reset plus the override trio mutated by
+				// ConsumeOverrideCycle) is flushed separately under a monotonic
+				// last_reset guard: it only fires when this node performed a reset
+				// the database has not seen, which is exactly when its override
+				// snapshot is authoritative. An unguarded write here would let a
+				// node with a stale in-memory override clobber a newer admin update
+				// every dump cycle. The trio is written together with last_reset so
+				// the persisted combination always satisfies validateOverride.
+				lifecycleResult := tx.WithContext(ctx).
+					Session(&gorm.Session{SkipHooks: true}).
+					Model(&configstoreTables.TableBudget{}).
+					Where("id = ? AND last_reset < ?", inMemoryBudget.ID, inMemoryBudget.LastReset).
+					Updates(map[string]interface{}{
+						"last_reset":                inMemoryBudget.LastReset,
+						"override_amount":           inMemoryBudget.OverrideAmount,
+						"override_mode":             inMemoryBudget.OverrideMode,
+						"override_cycles_remaining": inMemoryBudget.OverrideCyclesRemaining,
+					})
+
+				if lifecycleResult.Error != nil {
+					return fmt.Errorf("failed to update budget reset lifecycle %s: %w", inMemoryBudget.ID, lifecycleResult.Error)
 				}
 			}
 			return nil
@@ -4126,8 +4159,8 @@ func (gs *LocalGovernanceStore) GetBudgetAndRateLimitStatus(ctx context.Context,
 		for bi := range modelConfig.Budgets {
 			if budgetValue, ok := gs.budgets.Load(modelConfig.Budgets[bi].ID); ok && budgetValue != nil {
 				if budget, ok := budgetValue.(*configstoreTables.TableBudget); ok && budget != nil {
-					if budget.MaxLimit > 0 {
-						budgetPercent := float64(budget.CurrentUsage+budgetBaselines[budget.ID]) / budget.MaxLimit * 100
+					if effectiveMaxLimit := budget.EffectiveMaxLimit(); effectiveMaxLimit > 0 {
+						budgetPercent := float64(budget.CurrentUsage+budgetBaselines[budget.ID]) / effectiveMaxLimit * 100
 						if budgetPercent > result.BudgetPercentUsed {
 							result.BudgetPercentUsed = budgetPercent
 						}
@@ -4185,8 +4218,8 @@ func (gs *LocalGovernanceStore) GetBudgetAndRateLimitStatus(ctx context.Context,
 			if providerTable.BudgetID != nil {
 				if budgetValue, ok := gs.budgets.Load(*providerTable.BudgetID); ok && budgetValue != nil {
 					if budget, ok := budgetValue.(*configstoreTables.TableBudget); ok && budget != nil {
-						if budget.MaxLimit > 0 {
-							budgetPercent := float64(budget.CurrentUsage+budgetBaselines[budget.ID]) / budget.MaxLimit * 100
+						if effectiveMaxLimit := budget.EffectiveMaxLimit(); effectiveMaxLimit > 0 {
+							budgetPercent := float64(budget.CurrentUsage+budgetBaselines[budget.ID]) / effectiveMaxLimit * 100
 							if budgetPercent > result.BudgetPercentUsed {
 								result.BudgetPercentUsed = budgetPercent
 							}
@@ -4229,8 +4262,8 @@ func (gs *LocalGovernanceStore) GetBudgetAndRateLimitStatus(ctx context.Context,
 					for _, b := range pc.Budgets {
 						if budgetValue, ok := gs.budgets.Load(b.ID); ok && budgetValue != nil {
 							if budget, ok := budgetValue.(*configstoreTables.TableBudget); ok && budget != nil {
-								if budget.MaxLimit > 0 {
-									budgetPercent := float64(budget.CurrentUsage+budgetBaselines[budget.ID]) / budget.MaxLimit * 100
+								if effectiveMaxLimit := budget.EffectiveMaxLimit(); effectiveMaxLimit > 0 {
+									budgetPercent := float64(budget.CurrentUsage+budgetBaselines[budget.ID]) / effectiveMaxLimit * 100
 									if budgetPercent > result.BudgetPercentUsed {
 										result.BudgetPercentUsed = budgetPercent
 									}
