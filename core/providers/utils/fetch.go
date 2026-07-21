@@ -60,7 +60,11 @@ func FetchAndEncodeURL(ctx context.Context, resourceURL string) (mediaType strin
 	}
 	req.Header.Set("User-Agent", "bifrost-fetch/1")
 
-	resp, err := client.Do(req)
+	// Counted as upstream, not overhead: fetching a user-supplied media URL is
+	// network wait Bifrost is blocked on, not CPU it spends. Left uncounted it
+	// would show up as multi-second Bifrost overhead on any request with a
+	// remote image.
+	resp, err := DoHTTPRequest(client, req)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to fetch from %q: %w", resourceURL, err)
 	}

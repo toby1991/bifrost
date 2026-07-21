@@ -708,7 +708,10 @@ func (m *ToolsManager) executeToolInternal(
 		},
 	}
 
+	// Waiting on someone else's server — upstream, not Bifrost overhead.
+	toolCallStart := time.Now()
 	toolResponse, callErr := clientConn.CallTool(toolCtx, callRequest)
+	schemas.AddUpstreamLatency(ctx, time.Since(toolCallStart))
 	if callErr != nil {
 		// Sentinel-wrapped so the gate can classify error.type (timeout vs tool_error).
 		if toolCtx.Err() == context.DeadlineExceeded {
