@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -660,6 +661,61 @@ func TestGeminiGenerationRequestUnmarshalAcceptsSchemaIntegerConstraints(t *test
 			}`), &req)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "invalid schema integer constraint")
+		})
+	}
+}
+
+// TestGenAIToolSchemaConstraintsRoundTripAsNumbers verifies integer constraints survive the
+// genai -> Bifrost -> Gemini round trip as JSON numbers, since parametersJsonSchema is
+// validated as strict JSON Schema upstream (issue #5433).
+func TestGenAIToolSchemaConstraintsRoundTripAsNumbers(t *testing.T) {
+	bodyTemplate := `{
+		"contents": [{"role": "user", "parts": [{"text": "test"}]}],
+		"tools": [{
+			"functionDeclarations": [{
+				"name": "test_tool",
+				"description": "test",
+				"parameters": {
+					"type": "object",
+					"properties": {
+						"query": {"type": "string", "description": "text", "minLength": %s, "maxLength": %s},
+						"tags": {"type": "array", "items": {"type": "string"}, "minItems": %s, "maxItems": %s}
+					},
+					"required": ["query"]
+				}
+			}]
+		}]
+	}`
+
+	tests := []struct {
+		name string
+		body string
+	}{
+		{name: "numeric constraints", body: fmt.Sprintf(bodyTemplate, "1", "100", "1", "5")},
+		{name: "quoted constraints", body: fmt.Sprintf(bodyTemplate, `"1"`, `"100"`, `"1"`, `"5"`)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var req gemini.GeminiGenerationRequest
+			require.NoError(t, sonic.Unmarshal([]byte(tt.body), &req))
+
+			ctx := schemas.NewBifrostContext(context.Background(), schemas.NoDeadline)
+			bifrostReq := req.ToBifrostResponsesRequest(ctx)
+			require.NotNil(t, bifrostReq)
+
+			out, err := gemini.ToGeminiResponsesRequest(ctx, bifrostReq)
+			require.NoError(t, err)
+			require.Len(t, out.Tools, 1)
+			require.Len(t, out.Tools[0].FunctionDeclarations, 1)
+
+			params := parseToolParams(t, out.Tools[0].FunctionDeclarations[0])
+			query := getSchemaProperty(t, params, "query")
+			assert.Equal(t, float64(1), query["minLength"], "minLength must be a JSON number")
+			assert.Equal(t, float64(100), query["maxLength"], "maxLength must be a JSON number")
+			tags := getSchemaProperty(t, params, "tags")
+			assert.Equal(t, float64(1), tags["minItems"], "minItems must be a JSON number")
+			assert.Equal(t, float64(5), tags["maxItems"], "maxItems must be a JSON number")
 		})
 	}
 }
