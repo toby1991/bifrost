@@ -3704,6 +3704,12 @@ func (bifrost *Bifrost) GetConfiguredProviders() ([]schemas.ModelProvider, error
 // Returns:
 //   - error: Any error that occurred during the removal process
 func (bifrost *Bifrost) RemoveProvider(providerKey schemas.ModelProvider) error {
+	bifrost.providerLifecycleMu.RLock()
+	defer bifrost.providerLifecycleMu.RUnlock()
+	if bifrost.ctx.Err() != nil {
+		return fmt.Errorf("bifrost is shutting down")
+	}
+
 	bifrost.logger.Info("Removing provider %s", providerKey)
 	providerMutex := bifrost.getProviderMutex(providerKey)
 	providerMutex.Lock()
@@ -4545,6 +4551,14 @@ func (bifrost *Bifrost) createBaseProvider(providerKey schemas.ModelProvider, co
 // It initializes the request queue and starts worker goroutines for processing requests.
 // Note: This function assumes the caller has already acquired the appropriate mutex for the provider.
 func (bifrost *Bifrost) prepareProvider(providerKey schemas.ModelProvider, config *schemas.ProviderConfig) error {
+	// Provider constructors validate and normalize the config. Do not publish
+	// queue state until construction succeeds, otherwise requests can enqueue
+	// onto a queue that has no workers.
+	provider, err := bifrost.createBaseProvider(providerKey, config)
+	if err != nil {
+		return fmt.Errorf("failed to create provider for the given key: %v", err)
+	}
+
 	// Create ProviderQueue with lifecycle management
 	pq := &ProviderQueue{
 		queue:      make(chan *ChannelMessage, config.ConcurrencyAndBufferSize.BufferSize),
@@ -4556,11 +4570,6 @@ func (bifrost *Bifrost) prepareProvider(providerKey schemas.ModelProvider, confi
 
 	// Start specified number of workers
 	bifrost.waitGroups.Store(providerKey, &sync.WaitGroup{})
-
-	provider, err := bifrost.createBaseProvider(providerKey, config)
-	if err != nil {
-		return fmt.Errorf("failed to create provider for the given key: %v", err)
-	}
 
 	waitGroupValue, _ := bifrost.waitGroups.Load(providerKey)
 	currentWaitGroup := waitGroupValue.(*sync.WaitGroup)
@@ -4596,6 +4605,10 @@ func (bifrost *Bifrost) prepareProvider(providerKey schemas.ModelProvider, confi
 // This function uses read locks to prevent race conditions during provider updates.
 // Callers must check the closing flag or select on the done channel before sending.
 func (bifrost *Bifrost) getProviderQueue(providerKey schemas.ModelProvider) (*ProviderQueue, error) {
+	if bifrost.ctx.Err() != nil {
+		return nil, fmt.Errorf("bifrost is shutting down")
+	}
+
 	// Use read lock to allow concurrent reads but prevent concurrent updates
 	providerMutex := bifrost.getProviderMutex(providerKey)
 	providerMutex.RLock()
@@ -4607,8 +4620,17 @@ func (bifrost *Bifrost) getProviderQueue(providerKey schemas.ModelProvider) (*Pr
 	}
 
 	// Provider doesn't exist, need to create it
-	// Upgrade to write lock for creation
 	providerMutex.RUnlock()
+
+	// Serialize lazy publication with Shutdown. Established providers avoid the
+	// global lifecycle lock on the fast path above.
+	bifrost.providerLifecycleMu.RLock()
+	defer bifrost.providerLifecycleMu.RUnlock()
+	if bifrost.ctx.Err() != nil {
+		return nil, fmt.Errorf("bifrost is shutting down")
+	}
+
+	// Upgrade to write lock for creation
 	providerMutex.Lock()
 	defer providerMutex.Unlock()
 
@@ -4978,6 +5000,10 @@ func (bifrost *Bifrost) RunRealtimeTurnPreHooks(ctx *schemas.BifrostContext, req
 // getProviderByKey retrieves a provider instance from the providers array by its provider key.
 // Returns the provider if found, or nil if no provider with the given key exists.
 func (bifrost *Bifrost) getProviderByKey(providerKey schemas.ModelProvider) schemas.Provider {
+	if bifrost.ctx.Err() != nil {
+		return nil
+	}
+
 	providers := bifrost.providers.Load()
 	if providers == nil {
 		return nil
@@ -4988,6 +5014,15 @@ func (bifrost *Bifrost) getProviderByKey(providerKey schemas.ModelProvider) sche
 			return provider
 		}
 	}
+
+	// Serialize lazy publication with Shutdown. Existing provider lookups avoid
+	// the global lifecycle lock.
+	bifrost.providerLifecycleMu.RLock()
+	defer bifrost.providerLifecycleMu.RUnlock()
+	if bifrost.ctx.Err() != nil {
+		return nil
+	}
+
 	// Could happen when provider is not initialized yet, check if provider config exists in account and if so, initialize it
 	config, err := bifrost.account.GetConfigForProvider(providerKey)
 	if err != nil || config == nil {
