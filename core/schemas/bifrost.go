@@ -29,13 +29,17 @@ type BifrostConfig struct {
 	OAuth2Provider     OAuth2Provider
 	MCPHeadersProvider MCPHeadersProvider // Backend for MCPAuthTypePerUserHeaders credential storage; nil disables per-user-headers auth (resolver errors at use)
 	Logger             Logger
-	Tracer             Tracer        // Tracer for distributed tracing (nil = NoOpTracer)
-	InitialPoolSize    int           // Initial pool size for sync pools in Bifrost. Higher values will reduce memory allocations but will increase memory usage.
-	DropExcessRequests bool          // If true, in cases where the queue is full, requests will not wait for the queue to be empty and will be dropped instead.
-	MCPConfig          *MCPConfig    // MCP (Model Context Protocol) configuration for tool integration
-	KeySelector        KeySelector   // Custom key selector function
-	KeyPoolFilter      KeyPoolFilter // Optional hook to filter available keys before selection; nil = all keys eligible
-	KVStore            KVStore       // shared KV store for clustering/session stickiness; nil = disabled
+	Tracer             Tracer // Tracer for distributed tracing (nil = NoOpTracer)
+	InitialPoolSize    int    // Initial pool size for sync pools in Bifrost. Higher values will reduce memory allocations but will increase memory usage.
+	DropExcessRequests bool   // If true, in cases where the queue is full, requests will not wait for the queue to be empty and will be dropped instead.
+	// DisableDynamicProviderInitialization prevents request paths from creating
+	// missing providers at runtime. Providers configured during Init and
+	// providers explicitly initialized through UpdateProvider are unaffected.
+	DisableDynamicProviderInitialization bool
+	MCPConfig                            *MCPConfig    // MCP (Model Context Protocol) configuration for tool integration
+	KeySelector                          KeySelector   // Custom key selector function
+	KeyPoolFilter                        KeyPoolFilter // Optional hook to filter available keys before selection; nil = all keys eligible
+	KVStore                              KVStore       // shared KV store for clustering/session stickiness; nil = disabled
 }
 
 // ModelProvider represents the different AI model providers supported by Bifrost.
