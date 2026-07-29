@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/maximhq/bifrost/core/network"
+	"github.com/maximhq/bifrost/core/schemas"
 	"github.com/valyala/fasthttp"
 )
 
@@ -36,6 +38,55 @@ func TestConfigureDialer_SetsRetryIfErr(t *testing.T) {
 	reset, retry = client.RetryIfErr(nil, 1, fmt.Errorf("dial tcp: no such host"))
 	if reset || retry {
 		t.Error("RetryIfErr should not retry on unrelated errors")
+	}
+}
+
+func TestConfigureDialerWithNetworkConfig_StaleConnectionRetry(t *testing.T) {
+	t.Run("enabled by default", func(t *testing.T) {
+		client := ConfigureDialerWithNetworkConfig(&fasthttp.Client{}, schemas.NetworkConfig{})
+		if client.RetryIfErr == nil {
+			t.Fatal("stale-connection retry should remain enabled by default")
+		}
+	})
+
+	t.Run("explicitly disabled", func(t *testing.T) {
+		client := &fasthttp.Client{RetryIfErr: network.StaleConnectionRetryIfErr}
+		ConfigureDialerWithNetworkConfig(client, schemas.NetworkConfig{
+			DisableStaleConnectionRetry: true,
+		})
+		if client.RetryIfErr == nil {
+			t.Fatal("disabled transport should install an explicit no-retry callback")
+		}
+		reset, retry := client.RetryIfErr(nil, 1, fmt.Errorf("cannot find whitespace"))
+		if reset || retry {
+			t.Fatal("stale-connection retry should be disabled")
+		}
+		if client.Dial == nil {
+			t.Fatal("disabling stale retry must not disable dialer hardening")
+		}
+	})
+}
+
+func TestNetworkConfig_DisableStaleConnectionRetryRoundTrip(t *testing.T) {
+	input := schemas.NetworkConfig{
+		MaxRetries:                  7,
+		DisableStaleConnectionRetry: true,
+	}
+
+	data, err := json.Marshal(input)
+	if err != nil {
+		t.Fatalf("marshal NetworkConfig: %v", err)
+	}
+	var output schemas.NetworkConfig
+	if err := json.Unmarshal(data, &output); err != nil {
+		t.Fatalf("unmarshal NetworkConfig: %v", err)
+	}
+
+	if !output.DisableStaleConnectionRetry {
+		t.Fatal("disable_stale_connection_retry should survive JSON round-trip")
+	}
+	if output.MaxRetries != input.MaxRetries {
+		t.Fatalf("MaxRetries changed: got %d, want %d", output.MaxRetries, input.MaxRetries)
 	}
 }
 

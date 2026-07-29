@@ -3619,6 +3619,11 @@
           "type": "boolean",
           "description": "Allow connections to RFC 1918 private IPs (10.x, 172.16.x, 192.168.x). Enable for providers on a k8s pod network, LAN, or private VPC. Loopback addresses (localhost, 127.0.0.1, ::1) remain allowed regardless of this setting. Link-local addresses (169.254.x.x) are always blocked.",
           "default": false
+        },
+        "disable_stale_connection_retry": {
+          "type": "boolean",
+          "description": "Disable fasthttp transport retries used to recover stale pooled connections. Core-level attempt retries configured by max_retries remain unchanged.",
+          "default": false
         }
       },
       "additionalProperties": false
@@ -3693,6 +3698,11 @@
         "allow_private_network": {
           "type": "boolean",
           "description": "Allow connections to RFC 1918 private IPs (10.x, 172.16.x, 192.168.x). Enable for providers on a k8s pod network, LAN, or private VPC. Loopback addresses (localhost, 127.0.0.1, ::1) remain allowed regardless of this setting. Link-local addresses (169.254.x.x) are always blocked.",
+          "default": false
+        },
+        "disable_stale_connection_retry": {
+          "type": "boolean",
+          "description": "Disable fasthttp transport retries used to recover stale pooled connections. Core-level attempt retries configured by max_retries remain unchanged.",
           "default": false
         }
       },
