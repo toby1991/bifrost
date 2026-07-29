@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/maximhq/bifrost/core/schemas"
 	"github.com/valyala/fasthttp"
 )
 
@@ -65,6 +66,22 @@ func TestBuildStreamingClient_BaseUnchanged(t *testing.T) {
 	}
 	if base.MaxConnDuration != 5*time.Minute {
 		t.Errorf("base MaxConnDuration mutated: got %v, want 5m", base.MaxConnDuration)
+	}
+}
+
+func TestBuildStreamingClient_PreservesDisabledStaleConnectionRetry(t *testing.T) {
+	base := &fasthttp.Client{}
+	ConfigureDialerWithNetworkConfig(base, schemas.NetworkConfig{
+		DisableStaleConnectionRetry: true,
+	})
+
+	stream := BuildStreamingClient(base)
+	if stream.RetryIfErr == nil {
+		t.Fatal("streaming client should retain the explicit no-retry callback")
+	}
+	reset, retry := stream.RetryIfErr(nil, 1, fmt.Errorf("cannot find whitespace"))
+	if reset || retry {
+		t.Fatal("streaming client should not re-enable stale-connection retries")
 	}
 }
 

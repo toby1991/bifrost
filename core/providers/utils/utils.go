@@ -508,8 +508,28 @@ func ConfigureRetry(client *fasthttp.Client) *fasthttp.Client {
 	return client
 }
 
-// ConfigureDialer configures the client's connection behavior:
-//  1. Sets up the stale-connection retry policy (see network.StaleConnectionRetryIfErr).
+// ConfigureDialer configures the client's connection behavior with the default
+// stale-connection retry policy enabled. It is retained for callers that only
+// need to configure private-network access.
+func ConfigureDialer(client *fasthttp.Client, allowPrivateNetwork bool) *fasthttp.Client {
+	return configureDialer(client, allowPrivateNetwork, true)
+}
+
+// ConfigureDialerWithNetworkConfig configures the client's connection behavior
+// from a provider NetworkConfig. DisableStaleConnectionRetry controls only
+// fasthttp's transport retry callback; provider attempt retries remain governed
+// independently by NetworkConfig.MaxRetries in the core execution loop.
+func ConfigureDialerWithNetworkConfig(client *fasthttp.Client, config schemas.NetworkConfig) *fasthttp.Client {
+	return configureDialer(client, config.AllowPrivateNetwork, !config.DisableStaleConnectionRetry)
+}
+
+func neverRetryIfErr(_ *fasthttp.Request, _ int, _ error) (resetTimeout bool, retry bool) {
+	return false, false
+}
+
+// configureDialer configures the client's connection behavior:
+//  1. Enables or disables the stale-connection retry policy
+//     (see network.StaleConnectionRetryIfErr).
 //  2. Wraps the Dial function to enable TCP keepalive on all connections,
 //     proactively detecting dead connections before fasthttp tries to reuse them.
 //
@@ -523,9 +543,15 @@ func ConfigureRetry(client *fasthttp.Client) *fasthttp.Client {
 //
 // Dead connections are detected within ~25s (10 + 5*3), before the 30s
 // MaxIdleConnDuration expires and the connection is reused.
-func ConfigureDialer(client *fasthttp.Client, allowPrivateNetwork bool) *fasthttp.Client {
-	// Configure stale-connection retry policy
-	client.RetryIfErr = network.StaleConnectionRetryIfErr
+func configureDialer(client *fasthttp.Client, allowPrivateNetwork, staleConnectionRetryEnabled bool) *fasthttp.Client {
+	if staleConnectionRetryEnabled {
+		client.RetryIfErr = network.StaleConnectionRetryIfErr
+	} else {
+		// A nil callback makes fasthttp fall back to retries for idempotent
+		// methods. Install an explicit negative callback so disabled really
+		// means that this transport performs no stale-connection retry.
+		client.RetryIfErr = neverRetryIfErr
+	}
 
 	existingDial := client.Dial
 	existingDialTimeout := client.DialTimeout
