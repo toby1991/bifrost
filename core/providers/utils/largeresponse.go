@@ -22,6 +22,14 @@ type LargeResponseReader struct {
 	consumed bool // true after Read returns io.EOF, body fully consumed through Reader chain
 }
 
+// NewLargeResponseReader 为 provider 自建的流式下载（不走 large-response
+// 阈值检测路径）构造 reader。reader 通常是 resp.BodyStream()（可叠加 gzip
+// 解压层）；调用方持有返回 reader 的所有权，Close 时先执行 cleanup 再释放
+// resp。与阈值路径一致：Read 返回 EOF 后 Close 跳过 drain。
+func NewLargeResponseReader(reader io.Reader, resp *fasthttp.Response, ctx *schemas.BifrostContext, cleanup func()) *LargeResponseReader {
+	return &LargeResponseReader{Reader: reader, Resp: resp, ctx: ctx, cleanup: cleanup}
+}
+
 // Read delegates to the wrapped Reader and tracks EOF so Close() can skip
 // a redundant (and potentially blocking) drain of the body stream.
 func (r *LargeResponseReader) Read(p []byte) (int, error) {
