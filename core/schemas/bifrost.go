@@ -273,10 +273,6 @@ const (
 	BifrostContextKeySkipKeySelection                    BifrostContextKey = "bifrost-skip-key-selection"             // bool (will pass an empty key to the provider)
 	BifrostContextKeyExtraHeaders                        BifrostContextKey = "bifrost-extra-headers"                  // map[string][]string
 	BifrostContextKeyURLPath                             BifrostContextKey = "bifrost-extra-url-path"                 // string
-	// BifrostContextKeyUpstreamIdempotencyKey 携带调用方派生的上游幂等键（string）。
-	// 它是嵌入式调用方（LLMGW）显式设置的普通 key，不属于 reservedKeys：
-	// provider 仅在自身协议支持幂等键时透传为对应 header（如 Gate Idempotency-Key）。
-	BifrostContextKeyUpstreamIdempotencyKey               BifrostContextKey = "bifrost-upstream-idempotency-key"               // string (caller-derived upstream idempotency key; set by embedded callers)
 	BifrostContextKeyUseRawRequestBody                   BifrostContextKey = "bifrost-use-raw-request-body"
 	BifrostContextKeyChangeRequestType                   BifrostContextKey = "bifrost-change-request-type"                      // RequestType (set by plugins to trigger request type conversion in core, e.g. text->chat or chat->responses)
 	BifrostContextKeySendBackRawRequest                  BifrostContextKey = "bifrost-send-back-raw-request"                    // bool (per-request override — read by bifrost.go, never overwritten)

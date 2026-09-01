@@ -136,15 +136,6 @@ func (bc *BifrostContext) WithValue(key any, value any) *BifrostContext {
 	return bc
 }
 
-// WithDirectKey 用显式 Key 覆盖请求期的 key pool 选择（reserved 写入路径）。
-// 仅嵌入式 owner 的恢复/固定凭证场景使用：例如异步任务恢复必须复用
-// 原始 credential（即使该 key 已被禁用、不在 active pool 中）。普通请求
-// 路径禁止调用；Core 在请求清理时清除该值。
-func (bc *BifrostContext) WithDirectKey(key Key) *BifrostContext {
-	bc.setReservedValue(BifrostContextKeyDirectKey, key)
-	return bc
-}
-
 // Root returns the underlying root BifrostContext. For root contexts this is
 // the receiver itself; for plugin-scoped contexts it is the underlying root
 // that scoped Value/SetValue calls delegate to.

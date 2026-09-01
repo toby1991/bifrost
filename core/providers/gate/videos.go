@@ -1,9 +1,9 @@
 package gate
 
 import (
-	"compress/gzip"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -130,25 +130,20 @@ func parseGateTime(value string) (*int64, error) {
 	return &unix, nil
 }
 
-// gateBillingEvidence 组装精确字符串计费证据；全部为空时返回 nil。
-func gateBillingEvidence(estimatedCost, billedCost, currency, billingStatus string) *schemas.VideoBillingEvidence {
-	if estimatedCost == "" && billedCost == "" && currency == "" && billingStatus == "" {
+// gateTerminalCost 把 Gate 终态计费事实映射为归一化上游成本。
+// 仅 billing_status=settled 且 billed_cost 为有限非负数时返回非 nil；
+// 其余（缺失、pre_deducted、未知状态、非法数字）一律 nil，由调用方进入
+// actual-cost-unknown。Gate 查询响应不返回 currency，Cost 不携带币种。
+// 原始十进制文本仅通过 ExtraFields.RawResponse 可选保留，绝不冒充计算依据。
+func gateTerminalCost(billingStatus, billedCost string) *schemas.BifrostCost {
+	if billingStatus != "settled" {
 		return nil
 	}
-	evidence := &schemas.VideoBillingEvidence{}
-	if estimatedCost != "" {
-		evidence.EstimatedCost = schemas.Ptr(estimatedCost)
+	value, err := strconv.ParseFloat(billedCost, 64)
+	if err != nil || math.IsNaN(value) || math.IsInf(value, 0) || value < 0 {
+		return nil
 	}
-	if billedCost != "" {
-		evidence.BilledCost = schemas.Ptr(billedCost)
-	}
-	if currency != "" {
-		evidence.Currency = schemas.Ptr(currency)
-	}
-	if billingStatus != "" {
-		evidence.BillingStatus = schemas.Ptr(billingStatus)
-	}
-	return evidence
+	return &schemas.BifrostCost{TotalCost: value}
 }
 
 // newGateError 构造携带 Gate HTTP 状态码与 envelope msg 的 provider 错误。
@@ -223,10 +218,9 @@ func (provider *GateProvider) VideoGeneration(ctx *schemas.BifrostContext, key s
 	if key.Value.GetValue() != "" {
 		req.Header.Set("Authorization", "Bearer "+key.Value.GetValue())
 	}
-	// 上游幂等键：仅当调用方显式派生（同一次提交链）时透传
-	if idempotencyKey, ok := ctx.Value(schemas.BifrostContextKeyUpstreamIdempotencyKey).(string); ok && idempotencyKey != "" {
-		req.Header.Set("Idempotency-Key", idempotencyKey)
-	}
+	// 幂等键经既有 BifrostContextKeyExtraHeaders 契约传递：调用方写入
+	// ExtraHeaders["Idempotency-Key"]，SetExtraHeaders 已在上文透传。本 provider
+	// 不另设通道。
 
 	req.SetBody(jsonData)
 
@@ -271,11 +265,12 @@ func (provider *GateProvider) VideoGeneration(ctx *schemas.BifrostContext, key s
 	}
 
 	bifrostResp := &schemas.BifrostVideoGenerationResponse{
-		ID:              providerUtils.AddVideoIDProviderSuffix(data.JobID, providerName),
-		Model:           bifrostReq.Model,
-		Object:          "video",
-		Status:          status,
-		BillingEvidence: gateBillingEvidence(data.EstimatedCost, "", data.Currency, ""),
+		ID:     providerUtils.AddVideoIDProviderSuffix(data.JobID, providerName),
+		Model:  bifrostReq.Model,
+		Object: "video",
+		Status: status,
+		// Submit 响应只有 estimated_cost/pre_deduct_amount，没有终态费用；
+		// 不映射 Cost（nil 表示尚无 settled 实际费用）。
 		ExtraFields: schemas.BifrostResponseExtraFields{
 			Latency: latency.Milliseconds(),
 		},
@@ -371,13 +366,14 @@ func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key sch
 	}
 
 	bifrostResp := &schemas.BifrostVideoGenerationResponse{
-		ID:              providerUtils.AddVideoIDProviderSuffix(data.JobID, providerName),
-		Model:           data.Model,
-		Object:          "video",
-		Status:          status,
-		CompletedAt:     completedAt,
-		ExpiresAt:       expiresAt,
-		BillingEvidence: gateBillingEvidence(data.EstimatedCost, data.BilledCost, data.Currency, data.BillingStatus),
+		ID:          providerUtils.AddVideoIDProviderSuffix(data.JobID, providerName),
+		Model:       data.Model,
+		Object:      "video",
+		Status:      status,
+		CompletedAt: completedAt,
+		ExpiresAt:   expiresAt,
+		// 只有 settled 终态映射实际费用；其余 Cost 保持 nil。
+		Cost: gateTerminalCost(data.BillingStatus, data.BilledCost),
 		ExtraFields: schemas.BifrostResponseExtraFields{
 			Latency: latency.Milliseconds(),
 		},
@@ -501,36 +497,23 @@ func (provider *GateProvider) VideoDownload(ctx *schemas.BifrostContext, key sch
 		return nil, providerUtils.SetErrorLatency(gateErr, latency+latency2)
 	}
 
-	// 组装流式 reader：按需叠加 gzip 解压层
-	stream := resp2.BodyStream()
-	if stream == nil {
+	// 第二跳成功：不返回字节；注册统一 large-response 契约（gzip 解压、idle
+	// timeout、cancel watcher、长度/类型/disposition 全部由 helper 收口），
+	// 实际流只走 BifrostContextKeyLargeResponseReader。
+	if !providerUtils.SetupLargeResponseStreaming(ctx, resp2) {
 		return nil, providerUtils.SetErrorLatency(providerUtils.NewBifrostOperationError(
 			"gate download response body stream is unavailable", nil), latency+latency2)
 	}
-	reader := io.Reader(stream)
-	var cleanup func()
-	if strings.EqualFold(strings.TrimSpace(string(resp2.Header.Peek("Content-Encoding"))), "gzip") {
-		gz, err := gzip.NewReader(stream)
-		if err != nil {
-			return nil, providerUtils.SetErrorLatency(providerUtils.NewBifrostOperationError(
-				schemas.ErrProviderResponseDecode, err), latency+latency2)
-		}
-		reader = gz
-		cleanup = func() { _ = gz.Close() }
-	}
+	respOwned = false
 
 	contentType := string(resp2.Header.ContentType())
 	if contentType == "" {
 		contentType = "video/mp4"
 	}
 
-	largeReader := providerUtils.NewLargeResponseReader(reader, resp2, ctx, cleanup)
-	respOwned = false
-
 	return &schemas.BifrostVideoDownloadResponse{
-		VideoID:       providerUtils.AddVideoIDProviderSuffix(taskID, providerName),
-		ContentType:   contentType,
-		ContentStream: largeReader,
+		VideoID:     providerUtils.AddVideoIDProviderSuffix(taskID, providerName),
+		ContentType: contentType,
 		ExtraFields: schemas.BifrostResponseExtraFields{
 			Latency: (latency + latency2).Milliseconds(),
 		},

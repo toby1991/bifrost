@@ -1,7 +1,5 @@
 package schemas
 
-import "io"
-
 // VideoStatus is the lifecycle status of a video job.
 type VideoStatus string
 
@@ -23,16 +21,6 @@ const (
 type VideoCreateError struct {
 	Code    string `json:"code,omitempty"`
 	Message string `json:"message,omitempty"`
-}
-
-// VideoBillingEvidence 是 provider 上报的精确字符串计费证据。所有金额字段
-// 保留 provider 原始字符串，绝不经过 float64；是否可结算由调用方按
-// billing_status/currency 白名单裁决。字段缺失（nil）表示 provider 未上报。
-type VideoBillingEvidence struct {
-	EstimatedCost *string `json:"estimated_cost,omitempty"`
-	BilledCost    *string `json:"billed_cost,omitempty"`
-	Currency      *string `json:"currency,omitempty"`
-	BillingStatus *string `json:"billing_status,omitempty"`
 }
 
 // ContentFilterInfo contains information about content that was filtered due to safety policies.
@@ -129,9 +117,10 @@ type BifrostVideoGenerationResponse struct {
 	Status             VideoStatus        `json:"status,omitempty"`                // Current lifecycle status of the video job
 	Videos             []VideoOutput      `json:"videos,omitempty"`                // Generated videos (supports multiple videos)
 	ContentFilter      *ContentFilterInfo `json:"content_filter,omitempty"`        // Information about content filtering (if applicable)
-	// BillingEvidence 是 provider 上报的精确字符串计费证据；仅异步任务型
-	// provider（如 Gate）上报，其他 provider 保持 nil。
-	BillingEvidence *VideoBillingEvidence `json:"billing_evidence,omitempty"`
+	// Cost 是 provider 终态的实际费用：nil 表示尚无 settled 实际费用（缺失、
+	// pre_deducted、非法或未知 billing 状态）；非 nil 且 TotalCost=0 表示
+	// 明确零扣费。原始十进制文本仅通过 ExtraFields.RawResponse 可选保留。
+	Cost *BifrostCost `json:"cost,omitempty"`
 
 	ExtraFields BifrostResponseExtraFields `json:"extra_fields,omitempty"`
 }
@@ -253,11 +242,8 @@ type BifrostVideoDownloadResponse struct {
 	VideoID     string `json:"video_id"`
 	Content     []byte `json:"-"`                      // Raw video content (not serialized)
 	ContentType string `json:"content_type,omitempty"` // MIME type (e.g., "video/mp4", "image/png" for thumbnails)
-	// ContentStream 是流式下载出口：provider 选择流式返回时 Content 为空、
-	// ContentStream 非空。所有权归调用方：调用方必须 Close（Close 同时释放
-	// 底层 provider 响应资源）。序列化边界不得缓冲整个流。
-	ContentStream io.ReadCloser `json:"-"`
-
+	// 大体积内容不再经本 DTO 返回：provider 把响应流注册进
+	// BifrostContextKeyLargeResponseReader，transport/嵌入式调用方消费同一契约。
 	ExtraFields BifrostResponseExtraFields `json:"extra_fields"`
 }
 
