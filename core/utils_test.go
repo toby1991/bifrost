@@ -1,12 +1,33 @@
 package bifrost
 
 import (
+	"context"
 	"net"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/maximhq/bifrost/core/network"
+	"github.com/maximhq/bifrost/core/schemas"
 )
+
+// TestClearCtxForFallbackClearsDirectKey 锁定提交安全边界：provider fallback
+// 绝不继承原始请求的 DirectKey，防止原始凭证跨 provider 泄漏。
+func TestClearCtxForFallbackClearsDirectKey(t *testing.T) {
+	ctx := schemas.NewBifrostContext(context.Background(), time.Now().Add(time.Minute))
+	key := schemas.Key{ID: "7", Value: *schemas.NewSecretVar("gate-secret")}
+	ctx.SetValue(schemas.BifrostContextKeyDirectKey, key)
+	ctx.SetValue(schemas.BifrostContextKeyAPIKeyID, "7")
+
+	clearCtxForFallback(ctx)
+
+	if got, ok := ctx.Value(schemas.BifrostContextKeyDirectKey).(schemas.Key); ok && got.Value.GetValue() != "" {
+		t.Fatalf("DirectKey leaked into fallback: %+v", got)
+	}
+	if got, ok := ctx.Value(schemas.BifrostContextKeyAPIKeyID).(string); ok && got != "" {
+		t.Fatalf("API key pin leaked into fallback: %q", got)
+	}
+}
 
 func TestValidateExternalURL(t *testing.T) {
 	tests := []struct {
@@ -255,9 +276,9 @@ func TestIsPrivateIP(t *testing.T) {
 		// Public IPv6
 		{"2606:4700::1", false},
 		// Unspecified addresses (fail-closed)
-		{"0.0.0.0", true},                   // IPv4 unspecified
-		{"0:0:0:0:0:0:0:0", true},           // IPv6 unspecified long form
-		{"::", true},                         // IPv6 unspecified short form
+		{"0.0.0.0", true},         // IPv4 unspecified
+		{"0:0:0:0:0:0:0:0", true}, // IPv6 unspecified long form
+		{"::", true},              // IPv6 unspecified short form
 	}
 
 	for _, tt := range tests {
@@ -272,4 +293,3 @@ func TestIsPrivateIP(t *testing.T) {
 		})
 	}
 }
-

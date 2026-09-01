@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"math"
+	"sync"
 
 	"github.com/bytedance/sonic"
 	"github.com/maximhq/bifrost/core/schemas"
@@ -16,18 +17,11 @@ import (
 // cancellation that already tore down the underlying fasthttp conn does not double-release.
 type LargeResponseReader struct {
 	io.Reader
-	Resp     *fasthttp.Response
-	ctx      *schemas.BifrostContext
-	cleanup  func()
-	consumed bool // true after Read returns io.EOF, body fully consumed through Reader chain
-}
-
-// NewLargeResponseReader 为 provider 自建的流式下载（不走 large-response
-// 阈值检测路径）构造 reader。reader 通常是 resp.BodyStream()（可叠加 gzip
-// 解压层）；调用方持有返回 reader 的所有权，Close 时先执行 cleanup 再释放
-// resp。与阈值路径一致：Read 返回 EOF 后 Close 跳过 drain。
-func NewLargeResponseReader(reader io.Reader, resp *fasthttp.Response, ctx *schemas.BifrostContext, cleanup func()) *LargeResponseReader {
-	return &LargeResponseReader{Reader: reader, Resp: resp, ctx: ctx, cleanup: cleanup}
+	Resp      *fasthttp.Response
+	ctx       *schemas.BifrostContext
+	cleanup   func()
+	closeOnce sync.Once
+	consumed  bool // true after Read returns io.EOF, body fully consumed through Reader chain
 }
 
 // Read delegates to the wrapped Reader and tracks EOF so Close() can skip
@@ -49,34 +43,41 @@ func (r *LargeResponseReader) Read(p []byte) (int, error) {
 // the drain is skipped. For identity-encoded responses (no Content-Length), the body
 // stream is a fasthttp closeReader that blocks until the TCP connection closes — which
 // can take minutes if the upstream server keeps the connection alive.
+// Close 释放底层 fasthttp 响应并归还 reader 所有权。并发关闭是合法的：
+// closeOnce 保证 cleanup 恰好执行一次、响应只释放一次。
+//
+// 完整读到 EOF：正常释放。未完整消费：调用 resp.CloseBodyStream() 中止
+// 上游连接（fasthttp 会关闭该连接而不是无界 drain 或把半读连接放回池），
+// 再释放响应对象。连接已被 cancel watcher 拆除时不再触碰响应。
 func (r *LargeResponseReader) Close() error {
-	if r == nil || r.Resp == nil {
+	if r == nil {
 		return nil
 	}
-	// Run cleanup first so SetupStreamCancellation's goroutine settles (close(done); <-closed)
-	// before we read BifrostContextKeyConnectionClosed. The goroutine's done-branch can set the
-	// flag when ctx.Err() != nil, so checking it before cleanup would miss that interleaving and
-	// fall through to fasthttp.ReleaseResponse on an already-torn-down conn (nil-deref in connsCleaner).
-	if r.cleanup != nil {
-		r.cleanup()
-		r.cleanup = nil
-	}
-	if r.ctx != nil {
-		if closed, ok := r.ctx.Value(schemas.BifrostContextKeyConnectionClosed).(bool); ok && closed {
-			r.Resp = nil
-			return nil
+	r.closeOnce.Do(func() {
+		resp := r.Resp
+		if resp == nil {
+			return
 		}
-	}
-	if !r.consumed {
-		if bodyStream := r.Resp.BodyStream(); bodyStream != nil {
-			_, _ = io.Copy(io.Discard, bodyStream)
-			if closer, ok := bodyStream.(io.Closer); ok {
-				_ = closer.Close()
+		// Run cleanup first so SetupStreamCancellation's goroutine settles (close(done); <-closed)
+		// before we read BifrostContextKeyConnectionClosed. The goroutine's done-branch can set the
+		// flag when ctx.Err() != nil, so checking it before cleanup would miss that interleaving and
+		// fall through to fasthttp.ReleaseResponse on an already-torn-down conn (nil-deref in connsCleaner).
+		if r.cleanup != nil {
+			r.cleanup()
+			r.cleanup = nil
+		}
+		if r.ctx != nil {
+			if closed, ok := r.ctx.Value(schemas.BifrostContextKeyConnectionClosed).(bool); ok && closed {
+				r.Resp = nil
+				return
 			}
 		}
-	}
-	fasthttp.ReleaseResponse(r.Resp)
-	r.Resp = nil
+		r.Resp = nil
+		// CloseBodyStream 在 EOF 后是廉价的干净关闭；未完整消费时中止上游
+		// 连接，绝不 drain 整个大响应体。
+		_ = resp.CloseBodyStream()
+		fasthttp.ReleaseResponse(resp)
+	})
 	return nil
 }
 
@@ -329,26 +330,43 @@ func ParseOpenAIUsageFromBytes(data []byte) *schemas.BifrostLLMUsage {
 }
 
 // SetupStreamingPassthrough configures large response passthrough for streaming
-// responses when large payload mode is active. Wraps the response body stream
-// in a LargeResponseReader and sets context keys for the transport layer.
-// Returns true if passthrough was set up. When true, the caller should return
-// a closed channel and must NOT release resp — it's owned by the reader in context.
+// responses when large payload mode is active. 条件判断保留在本函数：仅
+// large-payload 模式下才接管，实际接管逻辑统一走 SetupLargeResponseStreaming。
+// 返回 true 时调用方应返回已关闭的 channel，且不得再 release resp。
 func SetupStreamingPassthrough(ctx *schemas.BifrostContext, resp *fasthttp.Response) bool {
 	isLargePayload, _ := ctx.Value(schemas.BifrostContextKeyLargePayloadMode).(bool)
 	if !isLargePayload {
 		return false
 	}
+	return SetupLargeResponseStreaming(ctx, resp)
+}
 
+// SetupLargeResponseStreaming 是 provider 自建流式响应的统一接管入口：
+// 校验 body stream 存在；完成 gzip 解压、idle timeout、context cancellation
+// watcher、content length/type/disposition 注册，并把 *LargeResponseReader
+// 放进 BifrostContextKeyLargeResponseReader。构造细节（gzip/idle/cancel
+// wiring）不暴露给 provider。
+//
+// 返回 true 时 resp 的所有权已转移给 context 中的 reader，调用方不得再
+// release resp；返回 false 时 resp 未被动过，调用方按普通路径处理。
+func SetupLargeResponseStreaming(ctx *schemas.BifrostContext, resp *fasthttp.Response) bool {
+	bodyStream := resp.BodyStream()
+	if bodyStream == nil {
+		return false
+	}
+
+	// DecompressStreamBody 会清除 Content-Encoding 头；先记录 gzip 标记。
+	wasGzip := len(resp.Header.ContentEncoding()) > 0
 	reader, releaseGzip := DecompressStreamBody(resp)
 
 	// Wrap reader with idle timeout to detect stalled streams.
-	reader, stopIdleTimeout := NewIdleTimeoutReader(reader, resp.BodyStream(), GetStreamIdleTimeout(ctx), ctx)
+	reader, stopIdleTimeout := NewIdleTimeoutReader(reader, bodyStream, GetStreamIdleTimeout(ctx), ctx)
 
 	// Wire cancellation to the raw fasthttp body. On a mid-stream client disconnect this fires
 	// wce.CloseWithError(ctx.Err()) to unblock the transport's Read and sets
 	// BifrostContextKeyConnectionClosed so LargeResponseReader.Close skips the double release.
 	// logger arg is unused inside SetupStreamCancellation (uses package getLogger), nil is safe.
-	stopCancellation := SetupStreamCancellation(ctx, resp.BodyStream(), nil)
+	stopCancellation := SetupStreamCancellation(ctx, bodyStream, nil)
 
 	closableReader := &LargeResponseReader{
 		Reader: reader,
@@ -363,8 +381,17 @@ func SetupStreamingPassthrough(ctx *schemas.BifrostContext, resp *fasthttp.Respo
 
 	ctx.SetValue(schemas.BifrostContextKeyLargeResponseMode, true)
 	ctx.SetValue(schemas.BifrostContextKeyLargeResponseReader, closableReader)
+	// gzip 解压后真实长度未知；只有原始 Content-Length 才有意义。
+	if !wasGzip {
+		if contentLength := resp.Header.ContentLength(); contentLength > 0 {
+			ctx.SetValue(schemas.BifrostContextKeyLargeResponseContentLength, int64(contentLength))
+		}
+	}
 	if ct := string(resp.Header.ContentType()); ct != "" {
 		ctx.SetValue(schemas.BifrostContextKeyLargeResponseContentType, ct)
+	}
+	if disposition := resp.Header.Peek("Content-Disposition"); len(disposition) > 0 {
+		ctx.SetValue(schemas.BifrostContextKeyLargeResponseContentDisposition, string(disposition))
 	}
 	return true
 }
