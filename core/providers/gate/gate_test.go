@@ -3,14 +3,18 @@ package gate
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	providerUtils "github.com/maximhq/bifrost/core/providers/utils"
 
 	"github.com/bytedance/sonic"
 	schemas "github.com/maximhq/bifrost/core/schemas"
@@ -203,11 +207,11 @@ func TestMapGateStatus(t *testing.T) {
 
 // recordedRequest 捕获 fake server 收到的请求要素。
 type recordedRequest struct {
-	method          string
-	path            string
-	authorization   string
-	idempotencyKey  string
-	body            []byte
+	method         string
+	path           string
+	authorization  string
+	idempotencyKey string
+	body           []byte
 }
 
 func TestGateVideoGenerationSubmit(t *testing.T) {
@@ -226,7 +230,8 @@ func TestGateVideoGenerationSubmit(t *testing.T) {
 
 	provider := newTestProvider(t, server.URL)
 	ctx := testCtx()
-	ctx.SetValue(schemas.BifrostContextKeyUpstreamIdempotencyKey, "llmgw-exec-42")
+	// 幂等键经既有 ExtraHeaders 契约传递。
+	ctx.SetValue(schemas.BifrostContextKeyExtraHeaders, map[string][]string{"Idempotency-Key": {"llmgw-exec-42"}})
 
 	resp, bifrostErr := provider.VideoGeneration(ctx, testKey("gate-secret"), &schemas.BifrostVideoGenerationRequest{
 		Model:  "bytedance/seedance-2.0",
@@ -258,22 +263,52 @@ func TestGateVideoGenerationSubmit(t *testing.T) {
 		t.Fatalf("duration = %v", body["duration"])
 	}
 
-	// 响应侧：opaque ID 带 :gate 后缀、状态映射、精确字符串计费证据
+	// 响应侧：opaque ID 带 :gate 后缀、状态映射；Submit 只有预估费用，
+	// 无终态 settled 费用，Cost 必须为 nil。
 	if resp.ID != "video_abc123:gate" {
 		t.Fatalf("ID = %q", resp.ID)
 	}
 	if resp.Status != schemas.VideoStatusInProgress {
 		t.Fatalf("Status = %q", resp.Status)
 	}
-	if resp.BillingEvidence == nil || resp.BillingEvidence.EstimatedCost == nil ||
-		*resp.BillingEvidence.EstimatedCost != "1.0800000000" {
-		t.Fatalf("BillingEvidence = %+v", resp.BillingEvidence)
+	if resp.Cost != nil {
+		t.Fatalf("submit response must not carry terminal cost: %+v", resp.Cost)
 	}
-	if resp.BillingEvidence.Currency == nil || *resp.BillingEvidence.Currency != "USDT" {
-		t.Fatalf("Currency = %+v", resp.BillingEvidence.Currency)
+}
+
+// TestGateTerminalCost 锁定 settled 映射：只有 billing_status=settled 且
+// billed_cost 为有限非负数才产生 Cost。
+func TestGateTerminalCost(t *testing.T) {
+	tests := []struct {
+		name          string
+		billingStatus string
+		billedCost    string
+		want          *float64
+	}{
+		{"settled positive", "settled", "1.0800000000", schemas.Ptr(1.08)},
+		{"settled zero", "settled", "0.0000000000", schemas.Ptr(0.0)},
+		{"pre_deducted", "pre_deducted", "1.0", nil},
+		{"missing status", "", "1.0", nil},
+		{"unknown status", "charged", "1.0", nil},
+		{"settled missing cost", "settled", "", nil},
+		{"settled invalid", "settled", "abc", nil},
+		{"settled negative", "settled", "-0.1", nil},
+		{"settled infinity", "settled", "Inf", nil},
+		{"settled NaN", "settled", "NaN", nil},
 	}
-	if resp.BillingEvidence.BilledCost != nil || resp.BillingEvidence.BillingStatus != nil {
-		t.Fatalf("submit evidence must not carry terminal fields: %+v", resp.BillingEvidence)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := gateTerminalCost(tt.billingStatus, tt.billedCost)
+			if tt.want == nil {
+				if got != nil {
+					t.Fatalf("gateTerminalCost(%q, %q) = %+v, want nil", tt.billingStatus, tt.billedCost, got)
+				}
+				return
+			}
+			if got == nil || got.TotalCost != *tt.want {
+				t.Fatalf("gateTerminalCost(%q, %q) = %+v, want %v", tt.billingStatus, tt.billedCost, got, *tt.want)
+			}
+		})
 	}
 }
 
@@ -414,16 +449,13 @@ func TestGateVideoRetrieveMapping(t *testing.T) {
 		*resp.Videos[0].URL != "https://api.gate.ai/api/v1/videos/video_abc123/content" {
 		t.Fatalf("Videos = %+v", resp.Videos)
 	}
-	// 计费证据保持精确字符串（含超出 6 位小数的原始值）
-	if resp.BillingEvidence == nil || resp.BillingEvidence.BilledCost == nil ||
-		*resp.BillingEvidence.BilledCost != "1.0800000001" {
-		t.Fatalf("BilledCost = %+v", resp.BillingEvidence)
+	// settled 终态映射 Cost；原始十进制文本只进 RawResponse（本测试未开启）。
+	if resp.Cost == nil {
+		t.Fatal("settled terminal must carry Cost")
 	}
-	if resp.BillingEvidence.BillingStatus == nil || *resp.BillingEvidence.BillingStatus != "settled" {
-		t.Fatalf("BillingStatus = %+v", resp.BillingEvidence.BillingStatus)
-	}
-	if resp.BillingEvidence.Currency == nil || *resp.BillingEvidence.Currency != "USD" {
-		t.Fatalf("Currency = %+v", resp.BillingEvidence.Currency)
+	want, _ := strconv.ParseFloat("1.0800000001", 64)
+	if resp.Cost.TotalCost != want {
+		t.Fatalf("Cost = %+v, want %v", resp.Cost.TotalCost, want)
 	}
 }
 
@@ -444,9 +476,9 @@ func TestGateVideoRetrieveNonTerminalKeepsNoTerminalFields(t *testing.T) {
 	if resp.CompletedAt != nil || resp.ExpiresAt != nil || len(resp.Videos) != 0 {
 		t.Fatalf("non-terminal response must not carry terminal fields: %+v", resp)
 	}
-	if resp.BillingEvidence == nil || resp.BillingEvidence.BillingStatus == nil ||
-		*resp.BillingEvidence.BillingStatus != "pre_deducted" {
-		t.Fatalf("BillingEvidence = %+v", resp.BillingEvidence)
+	// pre_deducted 不是终态结算证据：Cost 保持 nil。
+	if resp.Cost != nil {
+		t.Fatalf("pre_deducted must not map to Cost: %+v", resp.Cost)
 	}
 }
 
@@ -467,10 +499,40 @@ func TestGateVideoRetrieveFailed(t *testing.T) {
 	if resp.Error == nil || resp.Error.Code != "failed" || resp.Error.Message != "内容审核未通过" {
 		t.Fatalf("Error = %+v", resp.Error)
 	}
-	// 失败任务仍可能产生正费用：计费证据必须保留
-	if resp.BillingEvidence == nil || resp.BillingEvidence.BilledCost == nil ||
-		*resp.BillingEvidence.BilledCost != "0.5000000000" {
-		t.Fatalf("BilledCost = %+v", resp.BillingEvidence)
+	// 失败任务仍可能产生正费用：settled 实际收费映射 Cost。
+	if resp.Cost == nil || resp.Cost.TotalCost != 0.5 {
+		t.Fatalf("failed task settled cost = %+v", resp.Cost)
+	}
+}
+
+// TestGateVideoRetrieveRawResponse 验证开启 sendBackRawResponse 时原始
+// billed_cost 字符串原样保留在 RawResponse 中。
+func TestGateVideoRetrieveRawResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"code":200,"msg":"","data":{"job_id":"j1","status":"completed","billed_cost":"1.0800000001","billing_status":"settled","created_at":"2026-05-27T05:00:00Z","completed_at":"2026-05-27T05:03:00Z"}}`)
+	}))
+	defer server.Close()
+
+	provider, err := NewGateProvider(&schemas.ProviderConfig{
+		NetworkConfig: schemas.NetworkConfig{
+			BaseURL:                        server.URL,
+			DefaultRequestTimeoutInSeconds: 5,
+			MaxConnsPerHost:                4,
+		},
+		ConcurrencyAndBufferSize: schemas.ConcurrencyAndBufferSize{Concurrency: 1, BufferSize: 1},
+		SendBackRawResponse:      true,
+	}, testLogger{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, bifrostErr := provider.VideoRetrieve(testCtx(), testKey("s"), &schemas.BifrostVideoRetrieveRequest{ID: "j1:gate"})
+	if bifrostErr != nil {
+		t.Fatalf("VideoRetrieve() error = %+v", bifrostErr.Error)
+	}
+	raw, ok := resp.ExtraFields.RawResponse.(json.RawMessage)
+	if !ok || !strings.Contains(string(raw), `"billed_cost":"1.0800000001"`) {
+		t.Fatalf("raw response must preserve exact billed_cost string, got %T %+v", resp.ExtraFields.RawResponse, resp.ExtraFields.RawResponse)
 	}
 }
 
@@ -508,8 +570,8 @@ func TestGateVideoRetrieveNotFound(t *testing.T) {
 }
 
 // TestGateVideoDownloadTwoHop 验证两跳下载：第一跳携带 Bearer 且不自动跟随
-// 重定向；第二跳是全新请求，绝不携带 Authorization / Idempotency-Key，
-// 响应体经 ContentStream 完整流出。
+// 重定向；第二跳是全新请求，绝不携带 Authorization / Idempotency-Key；
+// 响应体经 large-response context 契约完整流出。
 func TestGateVideoDownloadTwoHop(t *testing.T) {
 	payload := make([]byte, 2*1024*1024)
 	for i := range payload {
@@ -539,7 +601,8 @@ func TestGateVideoDownloadTwoHop(t *testing.T) {
 
 	provider := newTestProvider(t, api.URL)
 	ctx := testCtx()
-	ctx.SetValue(schemas.BifrostContextKeyUpstreamIdempotencyKey, "llmgw-exec-42")
+	// 幂等键经 ExtraHeaders 契约传递；第二跳是全新请求，绝不携带它。
+	ctx.SetValue(schemas.BifrostContextKeyExtraHeaders, map[string][]string{"Idempotency-Key": {"llmgw-exec-42"}})
 	resp, bifrostErr := provider.VideoDownload(ctx, testKey("gate-secret"), &schemas.BifrostVideoDownloadRequest{
 		Provider: schemas.Gate,
 		ID:       "video_abc123:gate",
@@ -554,17 +617,22 @@ func TestGateVideoDownloadTwoHop(t *testing.T) {
 	if cdnAuth != "" || cdnIdempotency != "" {
 		t.Fatalf("hop-2 leaked headers: Authorization=%q Idempotency-Key=%q", cdnAuth, cdnIdempotency)
 	}
-	if resp.ContentStream == nil {
-		t.Fatal("ContentStream is nil")
-	}
+	// 元数据响应不携带字节；实际流走 large-response context 契约。
 	if len(resp.Content) != 0 {
-		t.Fatalf("Content must stay empty on streamed path, got %d bytes", len(resp.Content))
+		t.Fatalf("Content must stay empty, got %d bytes", len(resp.Content))
 	}
-	got, err := io.ReadAll(resp.ContentStream)
+	reader, ok := ctx.Value(schemas.BifrostContextKeyLargeResponseReader).(*providerUtils.LargeResponseReader)
+	if !ok || reader == nil {
+		t.Fatal("large response reader not registered in context")
+	}
+	if got, _ := ctx.Value(schemas.BifrostContextKeyLargeResponseContentType).(string); got != "video/mp4" {
+		t.Fatalf("registered content type = %q", got)
+	}
+	got, err := io.ReadAll(reader)
 	if err != nil {
 		t.Fatalf("ReadAll() error = %v", err)
 	}
-	if err := resp.ContentStream.Close(); err != nil {
+	if err := reader.Close(); err != nil {
 		t.Fatalf("Close() error = %v", err)
 	}
 	if len(got) != len(payload) {
@@ -692,11 +760,12 @@ func TestGateProviderFailClosed(t *testing.T) {
 	}
 }
 
-// TestWithDirectKey 验证嵌入式调用方可以显式固定 key（恢复路径专用）。
-func TestWithDirectKey(t *testing.T) {
+// TestDirectKeyViaSetValue 验证嵌入式 owner 在调用前用既有 SetValue 契约
+// 固定未注册/disabled 历史 key（新建 context 默认不写锁）。
+func TestDirectKeyViaSetValue(t *testing.T) {
 	ctx := testCtx()
 	key := testKey("disabled-pc-secret")
-	ctx.WithDirectKey(key)
+	ctx.SetValue(schemas.BifrostContextKeyDirectKey, key)
 	got, ok := ctx.Value(schemas.BifrostContextKeyDirectKey).(schemas.Key)
 	if !ok || got.Value.GetValue() != "disabled-pc-secret" {
 		t.Fatalf("DirectKey = %+v, ok=%v", got, ok)
