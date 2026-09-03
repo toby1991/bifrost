@@ -177,7 +177,12 @@ func newGateError(resp *fasthttp.Response, body []byte) *schemas.BifrostError {
 // 幂等键只经既有 BifrostContextKeyExtraHeaders 契约透传为 Gate Idempotency-Key；
 // fallback/重试由调用方在 Core 入口层关闭，provider 本身不做任何重试。
 func (provider *GateProvider) VideoGeneration(ctx *schemas.BifrostContext, key schemas.Key, bifrostReq *schemas.BifrostVideoGenerationRequest) (*schemas.BifrostVideoGenerationResponse, *schemas.BifrostError) {
+	// 先清 sidecar 再做准入：被拒绝的调用也不得泄漏上一次提交账单。
 	clearVideoSubmissionBilling(ctx)
+
+	if err := providerUtils.CheckOperationAllowed(schemas.Gate, provider.customProviderConfig, schemas.VideoGenerationRequest); err != nil {
+		return nil, err
+	}
 
 	providerName := provider.GetProviderKey()
 
@@ -288,6 +293,10 @@ func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key sch
 	// context 可被上层复用；任何失败或非 settled 响应都不得泄漏上一次账单。
 	clearVideoSettledBilling(ctx)
 
+	if err := providerUtils.CheckOperationAllowed(schemas.Gate, provider.customProviderConfig, schemas.VideoRetrieveRequest); err != nil {
+		return nil, err
+	}
+
 	providerName := provider.GetProviderKey()
 
 	if bifrostReq == nil || bifrostReq.ID == "" {
@@ -387,12 +396,19 @@ func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key sch
 	if data.Duration > 0 {
 		bifrostResp.Seconds = schemas.Ptr(strconv.Itoa(data.Duration))
 	}
-	if status == schemas.VideoStatusCompleted && data.DownloadURL != "" {
-		bifrostResp.Videos = []schemas.VideoOutput{{
-			Type:        schemas.VideoOutputTypeURL,
-			URL:         schemas.Ptr(data.DownloadURL),
-			ContentType: "video/mp4",
-		}}
+	if data.Resolution != "" {
+		bifrostResp.Size = data.Resolution
+	}
+	// 完成后取 /content 第一跳的临时直链。任何取链失败只让 Videos 留空，
+	// 不得把已完成的生成结果或可信 settled 金额改写成失败。
+	if status == schemas.VideoStatusCompleted {
+		if directURL := provider.fetchContentDirectURL(ctx, key, taskID); directURL != "" {
+			bifrostResp.Videos = []schemas.VideoOutput{{
+				Type:        schemas.VideoOutputTypeURL,
+				URL:         schemas.Ptr(directURL),
+				ContentType: "video/mp4",
+			}}
+		}
 	}
 	if status == schemas.VideoStatusFailed {
 		message := envelope.Msg
@@ -417,6 +433,43 @@ func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key sch
 	return bifrostResp, nil
 }
 
+// fetchContentDirectURL 返回 completed 任务的临时下载直链，仅用于
+// VideoRetrieve 结果投影。只做 /content 第一跳：携带服务端凭证、
+// SkipBody 只读响应头、禁止跟随重定向；只接受 302 且 Location 通过
+// validateDownloadLocation。任何失败返回空串，由调用方保持 Videos 留空。
+func (provider *GateProvider) fetchContentDirectURL(ctx *schemas.BifrostContext, key schemas.Key, taskID string) string {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseRequest(req)
+	defer fasthttp.ReleaseResponse(resp)
+
+	providerUtils.SetExtraHeaders(ctx, req, provider.networkConfig.ExtraHeaders, nil)
+
+	req.SetRequestURI(provider.networkConfig.BaseURL + providerUtils.GetPathFromContext(ctx, gateVideosPath+"/"+url.PathEscape(taskID)+"/content"))
+	req.Header.SetMethod(http.MethodGet)
+	if key.Value.GetValue() != "" {
+		req.Header.Set("Authorization", "Bearer "+key.Value.GetValue())
+	}
+
+	// 只读响应头：302 不携带需要消费的正文，也不允许这里触及 CDN 内容。
+	resp.SkipBody = true
+
+	_, bifrostErr, wait := providerUtils.MakeRequestWithContext(ctx, provider.client, req, resp)
+	defer wait()
+	if bifrostErr != nil {
+		return ""
+	}
+
+	if resp.StatusCode() != fasthttp.StatusFound {
+		return ""
+	}
+	location := strings.TrimSpace(string(resp.Header.Peek("Location")))
+	if location == "" || validateDownloadLocation(location) != nil {
+		return ""
+	}
+	return location
+}
+
 // VideoDownload fetches video content from Gate.
 // 第一跳带 Bearer 请求 content 端点并禁止自动重定向（fasthttp 默认不跟随），
 // 只接受 302 且 Location 必须是绝对 HTTPS URL；第二跳用全新请求
@@ -424,6 +477,10 @@ func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key sch
 // dialer。未配置响应阈值时内容经既有 Content []byte 返回；配置阈值时
 // 超限响应由既有 large-response context reader 流式返回。
 func (provider *GateProvider) VideoDownload(ctx *schemas.BifrostContext, key schemas.Key, request *schemas.BifrostVideoDownloadRequest) (*schemas.BifrostVideoDownloadResponse, *schemas.BifrostError) {
+	if err := providerUtils.CheckOperationAllowed(schemas.Gate, provider.customProviderConfig, schemas.VideoDownloadRequest); err != nil {
+		return nil, err
+	}
+
 	providerName := provider.GetProviderKey()
 
 	if request == nil || request.ID == "" {

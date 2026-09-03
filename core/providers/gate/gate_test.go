@@ -432,11 +432,18 @@ func TestGateVideoGenerationUnknownStatus(t *testing.T) {
 }
 
 func TestGateVideoRetrieveMapping(t *testing.T) {
-	var recordedPath string
+	var recordedPaths []string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		recordedPath = r.URL.Path
+		recordedPaths = append(recordedPaths, r.URL.Path)
 		if r.Header.Get("Authorization") != "Bearer gate-secret" {
 			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		if strings.HasSuffix(r.URL.Path, "/content") {
+			// 直链只经 302 Location 交出；指向不可路由的 CDN 主机，
+			// 若实现错误地跟随重定向，本测试必然失败或超时。
+			w.Header().Set("Location", "https://cdn.example.com/signed-direct.mp4")
+			w.WriteHeader(http.StatusFound)
 			return
 		}
 		fmt.Fprint(w, `{"code":200,"msg":"","data":{"job_id":"video_abc123","status":"completed","model":"bytedance/seedance-2.0","download_url":"https://api.gate.ai/api/v1/videos/video_abc123/content","duration":6,"resolution":"720p","aspect_ratio":"16:9","generate_audio":false,"estimated_cost":"1.0800000000","billed_cost":"1.0800000001","billing_status":"settled","currency":"USD","expires_at":"2026-06-26T05:00:00Z","created_at":"2026-05-27T05:00:00Z","completed_at":"2026-05-27T05:03:00Z"}}`)
@@ -453,9 +460,13 @@ func TestGateVideoRetrieveMapping(t *testing.T) {
 		t.Fatalf("VideoRetrieve() error = %+v", bifrostErr.Error)
 	}
 
-	// opaque ID 的 :gate 后缀在出网前剥离
-	if recordedPath != "/api/v1/videos/video_abc123" {
-		t.Fatalf("path = %q", recordedPath)
+	// opaque ID 的 :gate 后缀在出网前剥离；完成后追加 /content 第一跳取直链
+	wantPaths := []string{"/api/v1/videos/video_abc123", "/api/v1/videos/video_abc123/content"}
+	if fmt.Sprintf("%v", recordedPaths) != fmt.Sprintf("%v", wantPaths) {
+		t.Fatalf("paths = %v, want %v", recordedPaths, wantPaths)
+	}
+	if resp.Size != "720p" {
+		t.Fatalf("Size = %q, want resolution mapped 720p", resp.Size)
 	}
 	if resp.ID != "video_abc123:gate" || resp.Status != schemas.VideoStatusCompleted {
 		t.Fatalf("response = %+v", resp)
@@ -476,7 +487,7 @@ func TestGateVideoRetrieveMapping(t *testing.T) {
 		t.Fatalf("ExpiresAt = %+v", resp.ExpiresAt)
 	}
 	if len(resp.Videos) != 1 || resp.Videos[0].URL == nil ||
-		*resp.Videos[0].URL != "https://api.gate.ai/api/v1/videos/video_abc123/content" {
+		*resp.Videos[0].URL != "https://cdn.example.com/signed-direct.mp4" {
 		t.Fatalf("Videos = %+v", resp.Videos)
 	}
 	// 费用只写 Gate provider-local sidecar，Core 视频响应 schema 不扩张；
@@ -561,6 +572,108 @@ func TestGateVideoRetrieveSettledCostMatrix(t *testing.T) {
 				t.Fatalf("billing = task=%q cost=%q currency=%q ok=%v; want exact %q", taskID, cost, currency, ok, tt.wantCost)
 			}
 		})
+	}
+}
+
+// TestGateVideoRetrieveDirectURLFailureKeepsResult 锁定：completed 任务的
+// 直链获取失败只让 Videos 留空，不改写状态与可信 settled 金额。
+func TestGateVideoRetrieveDirectURLFailureKeepsResult(t *testing.T) {
+	tests := []struct {
+		name        string
+		contentCode int
+		location    string
+	}{
+		{"content not ready", http.StatusConflict, ""},
+		{"content ok body instead of redirect", http.StatusOK, ""},
+		{"redirect without location", http.StatusFound, ""},
+		{"non https location", http.StatusFound, "http://cdn.example.com/v.mp4"},
+		{"relative location", http.StatusFound, "/v.mp4"},
+		{"location with userinfo", http.StatusFound, "https://user@cdn.example.com/v.mp4"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if strings.HasSuffix(r.URL.Path, "/content") {
+					if tt.location != "" {
+						w.Header().Set("Location", tt.location)
+					}
+					w.WriteHeader(tt.contentCode)
+					return
+				}
+				fmt.Fprint(w, gateRetrieveEnvelope("j1", "completed", "settled", "1.0800000001", true))
+			}))
+			defer server.Close()
+
+			provider := newTestProvider(t, server.URL)
+			ctx := testCtx()
+			resp, bifrostErr := provider.VideoRetrieve(ctx, testKey("s"), &schemas.BifrostVideoRetrieveRequest{ID: "j1:gate"})
+			if bifrostErr != nil {
+				t.Fatalf("direct URL failure must not fail retrieve, got %+v", bifrostErr.Error)
+			}
+			if resp.Status != schemas.VideoStatusCompleted {
+				t.Fatalf("Status = %q, want completed", resp.Status)
+			}
+			if len(resp.Videos) != 0 {
+				t.Fatalf("Videos = %+v, want empty on direct URL failure", resp.Videos)
+			}
+			if _, cost, _, ok := SettledVideoBillingFromContext(ctx); !ok || cost != "1.0800000001" {
+				t.Fatalf("settled billing = cost=%q ok=%v, want exact positive amount kept", cost, ok)
+			}
+		})
+	}
+}
+
+// TestGateOperationGating 锁定具名实例合同：GetProviderKey 返回自定义名，
+// 未授权的操作在发网前 fail-closed。
+func TestGateOperationGating(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusAccepted)
+		fmt.Fprint(w, `{"code":200,"msg":"","data":{"job_id":"j1","status":"pending"}}`)
+	}))
+	defer server.Close()
+
+	provider, err := NewGateProvider(&schemas.ProviderConfig{
+		NetworkConfig: schemas.NetworkConfig{
+			BaseURL:                        server.URL,
+			DefaultRequestTimeoutInSeconds: 5,
+		},
+		ConcurrencyAndBufferSize: schemas.ConcurrencyAndBufferSize{Concurrency: 1, BufferSize: 1},
+		CustomProviderConfig: &schemas.CustomProviderConfig{
+			CustomProviderKey: "gate-east",
+			BaseProviderType:  schemas.Gate,
+			AllowedRequests:   &schemas.AllowedRequests{VideoGeneration: true},
+		},
+	}, testLogger{})
+	if err != nil {
+		t.Fatalf("NewGateProvider() error = %v", err)
+	}
+
+	if got := provider.GetProviderKey(); got != "gate-east" {
+		t.Fatalf("GetProviderKey() = %q, want custom instance name", got)
+	}
+
+	ctx := testCtx()
+	resp, bifrostErr := provider.VideoGeneration(ctx, testKey("s"), &schemas.BifrostVideoGenerationRequest{
+		Model: "m", Input: &schemas.VideoGenerationInput{Prompt: "p"},
+	})
+	if bifrostErr != nil {
+		t.Fatalf("allowed VideoGeneration() error = %+v", bifrostErr.Error)
+	}
+	// 任务 ID 后缀跟随具名实例，不串实例。
+	if resp.ID != "j1:gate-east" {
+		t.Fatalf("ID = %q, want :gate-east suffix", resp.ID)
+	}
+
+	if _, err := provider.VideoRetrieve(ctx, testKey("s"), &schemas.BifrostVideoRetrieveRequest{ID: "j1:gate-east"}); err == nil {
+		t.Fatal("disallowed VideoRetrieve must fail closed")
+	}
+	if _, err := provider.VideoDownload(ctx, testKey("s"), &schemas.BifrostVideoDownloadRequest{ID: "j1:gate-east"}); err == nil {
+		t.Fatal("disallowed VideoDownload must fail closed")
+	}
+	// 被准入拒绝后，sidecar 不得残留上一次提交账单。
+	if _, _, ok := VideoSubmissionBillingFromContext(ctx); ok {
+		t.Fatal("rejected call leaked submission billing sidecar")
 	}
 }
 

@@ -49,7 +49,7 @@ type GateVideoRetrieveData struct {
 	JobID         string `json:"job_id"`
 	Status        string `json:"status"`
 	Model         string `json:"model"`
-	DownloadURL   string `json:"download_url"`
+	Resolution    string `json:"resolution"` // 实际出片档位，映射到标准响应 Size
 	Duration      int    `json:"duration"`
 	BilledCost    string `json:"billed_cost"`
 	BillingStatus string `json:"billing_status"` // pre_deducted / settled

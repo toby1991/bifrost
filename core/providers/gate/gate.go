@@ -38,14 +38,15 @@ const (
 
 // GateProvider implements the Provider interface for Gate.AI's video API.
 type GateProvider struct {
-	logger              schemas.Logger   // Logger for provider operations
-	client              *fasthttp.Client // provider API client（提交/查询/下载第一跳）
-	downloadClient      *fasthttp.Client // 下载第二跳的无状态 client 配置模板
-	downloadDial        func(context.Context, string, string) (net.Conn, error)
-	downloadTimeout     time.Duration
-	networkConfig       schemas.NetworkConfig // Network configuration including extra headers
-	sendBackRawRequest  bool                  // Whether to include raw request in BifrostResponse
-	sendBackRawResponse bool                  // Whether to include raw response in BifrostResponse
+	logger               schemas.Logger   // Logger for provider operations
+	client               *fasthttp.Client // provider API client（提交/查询/下载第一跳）
+	downloadClient       *fasthttp.Client // 下载第二跳的无状态 client 配置模板
+	downloadDial         func(context.Context, string, string) (net.Conn, error)
+	downloadTimeout      time.Duration
+	networkConfig        schemas.NetworkConfig         // Network configuration including extra headers
+	customProviderConfig *schemas.CustomProviderConfig // Custom provider config
+	sendBackRawRequest   bool                          // Whether to include raw request in BifrostResponse
+	sendBackRawResponse  bool                          // Whether to include raw response in BifrostResponse
 }
 
 // NewGateProvider creates a new Gate provider instance.
@@ -86,20 +87,21 @@ func NewGateProvider(config *schemas.ProviderConfig, logger schemas.Logger) (*Ga
 	downloadClient = providerUtils.ConfigureTLS(downloadClient, config.NetworkConfig, logger)
 
 	return &GateProvider{
-		logger:              logger,
-		client:              client,
-		downloadClient:      downloadClient,
-		downloadDial:        network.SSRFSafeDialContext(ssrfDialTimeout),
-		downloadTimeout:     requestTimeout,
-		networkConfig:       config.NetworkConfig,
-		sendBackRawRequest:  config.SendBackRawRequest,
-		sendBackRawResponse: config.SendBackRawResponse,
+		logger:               logger,
+		client:               client,
+		downloadClient:       downloadClient,
+		downloadDial:         network.SSRFSafeDialContext(ssrfDialTimeout),
+		downloadTimeout:      requestTimeout,
+		networkConfig:        config.NetworkConfig,
+		customProviderConfig: config.CustomProviderConfig,
+		sendBackRawRequest:   config.SendBackRawRequest,
+		sendBackRawResponse:  config.SendBackRawResponse,
 	}, nil
 }
 
 // GetProviderKey returns the provider identifier for Gate.
 func (provider *GateProvider) GetProviderKey() schemas.ModelProvider {
-	return schemas.Gate
+	return providerUtils.GetProviderName(schemas.Gate, provider.customProviderConfig)
 }
 
 // ListModels is not supported by the Gate provider.
