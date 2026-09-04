@@ -77,6 +77,7 @@ const (
 	Fireworks     ModelProvider = "fireworks"
 	Sarvam        ModelProvider = "sarvam"
 	Wafer         ModelProvider = "wafer"
+	Gate          ModelProvider = "gate"
 )
 
 // SupportedBaseProviders is the list of base providers allowed for custom providers.
@@ -88,6 +89,7 @@ var SupportedBaseProviders = []ModelProvider{
 	OpenAI,
 	HuggingFace,
 	Replicate,
+	Gate,
 }
 
 // StandardProviders is the list of all built-in (non-custom) providers.
@@ -122,6 +124,7 @@ var StandardProviders = []ModelProvider{
 	Fireworks,
 	Sarvam,
 	Wafer,
+	Gate,
 }
 
 // RequestType represents the type of request being made to a provider.
