@@ -750,6 +750,56 @@ func TestSchemaProviderRawRequest(t *testing.T) {
 	})
 }
 
+// TestSchemaGateProvider locks the standalone transport contract for both the
+// standard Gate provider and named Gate instances. Core already accepts both;
+// the transport schema must not reject them before provider initialization.
+func TestSchemaGateProvider(t *testing.T) {
+	schema := loadSchema(t)
+
+	if _, found := navigateJSON(schema, "properties", "providers", "properties", "gate"); !found {
+		t.Fatal("providers is missing the gate property")
+	}
+
+	baseProviderTypes, found := navigateJSON(schema, "$defs", "custom_provider_config", "properties", "base_provider_type", "enum")
+	if !found {
+		t.Fatal("custom_provider_config.base_provider_type enum is missing")
+	}
+	providerTypes, ok := baseProviderTypes.([]interface{})
+	if !ok {
+		t.Fatal("custom_provider_config.base_provider_type enum is not an array")
+	}
+	gateAllowed := false
+	for _, providerType := range providerTypes {
+		if providerType == "gate" {
+			gateAllowed = true
+			break
+		}
+	}
+	if !gateAllowed {
+		t.Fatal("custom_provider_config.base_provider_type does not allow gate")
+	}
+
+	compiled := compileSchema(t)
+	config := `{
+		"providers": {
+			"gate": {
+				"keys": [{"name": "gate-key", "value": "test-secret", "weight": 1, "models": ["bytedance/seedance-2.0"]}],
+				"custom_provider_config": {
+					"base_provider_type": "gate",
+					"allowed_requests": {
+						"video_generation": true,
+						"video_retrieve": true,
+						"video_download": true
+					}
+				}
+			}
+		}
+	}`
+	if err := validateConfig(t, compiled, config); err != nil {
+		t.Fatalf("named Gate provider should be valid, got: %v", err)
+	}
+}
+
 func TestSchemaGovernanceProviders(t *testing.T) {
 	schema := loadSchema(t)
 
