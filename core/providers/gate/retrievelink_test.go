@@ -3,6 +3,8 @@ package gate
 import (
 	"context"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -250,5 +252,153 @@ func TestGateRetrieveLinkNeverFollowsRedirect(t *testing.T) {
 	}
 	if hits := atomic.LoadInt32(&cdnHits); hits != 0 {
 		t.Fatalf("CDN hits = %d, want 0 (redirect must never be followed)", hits)
+	}
+}
+
+// TestGateRetrieveLinkHandshakeCancellation 覆盖真实 socket 上的 TLS、
+// CONNECT 与 SOCKS5 握手：短预算或显式取消必须关闭已建立的底层连接，
+// 不能只让 Client.Do 返回，留下脱离请求 context 的握手 goroutine。
+func TestGateRetrieveLinkHandshakeCancellation(t *testing.T) {
+	for _, proxyType := range []schemas.ProxyType{schemas.NoProxy, schemas.HTTPProxy, schemas.Socks5Proxy} {
+		for _, explicitCancel := range []bool{false, true} {
+			name := fmt.Sprintf("%s/cancel=%v", proxyType, explicitCancel)
+			t.Run(name, func(t *testing.T) {
+				listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1)})
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer listener.Close()
+				if err := listener.SetDeadline(time.Now().Add(3 * time.Second)); err != nil {
+					t.Fatal(err)
+				}
+
+				config := &schemas.ProviderConfig{
+					NetworkConfig: schemas.NetworkConfig{
+						BaseURL:                        "https://" + listener.Addr().String(),
+						DefaultRequestTimeoutInSeconds: 5,
+					},
+					ConcurrencyAndBufferSize: schemas.ConcurrencyAndBufferSize{Concurrency: 1, BufferSize: 1},
+				}
+				if proxyType != schemas.NoProxy {
+					// 目标地址由代理处理，测试不会解析或访问外网。
+					config.NetworkConfig.BaseURL = "https://fake-gate.invalid"
+					config.ProxyConfig = &schemas.ProxyConfig{
+						Type: proxyType,
+						URL:  schemas.NewSecretVar(listener.Addr().String()),
+					}
+				}
+				provider, err := NewGateProvider(config, testLogger{})
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				outerTimeout := 600 * time.Millisecond
+				if explicitCancel {
+					outerTimeout = 3 * time.Second
+				}
+				ctx, cancel := schemas.NewBifrostContextWithTimeout(context.Background(), outerTimeout)
+				defer cancel()
+				result := make(chan string, 1)
+				go func() {
+					result <- provider.fetchContentDirectURL(ctx, testKey("fake-secret"), "j1")
+				}()
+
+				conn, err := listener.Accept()
+				if err != nil {
+					t.Fatalf("handshake connection not opened: %v", err)
+				}
+				defer conn.Close()
+				if err := conn.SetReadDeadline(time.Now().Add(3 * time.Second)); err != nil {
+					t.Fatal(err)
+				}
+				// 先确认握手字节实际到达，再取消；服务端始终不回握手响应。
+				var firstByte [1]byte
+				if _, err := io.ReadFull(conn, firstByte[:]); err != nil {
+					t.Fatalf("handshake not started: %v", err)
+				}
+				peerClosed := make(chan error, 1)
+				go func() {
+					_, err := io.Copy(io.Discard, conn)
+					peerClosed <- err
+				}()
+				if explicitCancel {
+					cancel()
+				}
+
+				select {
+				case got := <-result:
+					if got != "" {
+						t.Fatalf("URL = %q, want empty on canceled handshake", got)
+					}
+				case <-time.After(time.Second):
+					t.Fatal("lookup did not return within its short budget")
+				}
+				select {
+				case err := <-peerClosed:
+					if err != nil {
+						t.Fatalf("peer connection was not closed cleanly: %v", err)
+					}
+				case <-time.After(300 * time.Millisecond):
+					t.Fatal("handshake socket remains open after lookup returned")
+				}
+			})
+		}
+	}
+}
+
+// TestGateRetrieveLinkDNSCancellation 使用仅等待取消的本地 resolver，
+// 验证直连与代理拨号的 DNS 都沿用单次取链预算，不会遗留后台解析。
+// 临时替换 net.DefaultResolver，因此本测试不可并行。
+func TestGateRetrieveLinkDNSCancellation(t *testing.T) {
+	for _, useProxy := range []bool{false, true} {
+		t.Run(fmt.Sprintf("proxy=%v", useProxy), func(t *testing.T) {
+			resolverContexts := make(chan context.Context, 16)
+			previousResolver := net.DefaultResolver
+			net.DefaultResolver = &net.Resolver{
+				PreferGo: true,
+				Dial: func(ctx context.Context, _, _ string) (net.Conn, error) {
+					select {
+					case resolverContexts <- ctx:
+					default:
+					}
+					<-ctx.Done()
+					return nil, ctx.Err()
+				},
+			}
+			defer func() { net.DefaultResolver = previousResolver }()
+
+			config := &schemas.ProviderConfig{
+				NetworkConfig: schemas.NetworkConfig{
+					BaseURL:                        "https://fake-gate.invalid",
+					DefaultRequestTimeoutInSeconds: 5,
+				},
+				ConcurrencyAndBufferSize: schemas.ConcurrencyAndBufferSize{Concurrency: 1, BufferSize: 1},
+			}
+			if useProxy {
+				config.ProxyConfig = &schemas.ProxyConfig{
+					Type: schemas.HTTPProxy,
+					URL:  schemas.NewSecretVar("http://fake-proxy.invalid:8080"),
+				}
+			}
+			provider, err := NewGateProvider(config, testLogger{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			ctx, cancel := schemas.NewBifrostContextWithTimeout(context.Background(), 600*time.Millisecond)
+			defer cancel()
+			if got := provider.fetchContentDirectURL(ctx, testKey("fake-secret"), "j1"); got != "" {
+				t.Fatalf("URL = %q, want empty on DNS timeout", got)
+			}
+			select {
+			case resolverCtx := <-resolverContexts:
+				select {
+				case <-resolverCtx.Done():
+				case <-time.After(300 * time.Millisecond):
+					t.Fatal("DNS remains active after lookup returned")
+				}
+			default:
+				t.Fatal("lookup did not exercise DNS")
+			}
+		})
 	}
 }

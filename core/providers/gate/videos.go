@@ -484,12 +484,13 @@ func (provider *GateProvider) fetchContentDirectURL(ctx *schemas.BifrostContext,
 			budget = remaining
 		}
 	}
-	// DNS、拨号、代理握手与响应头读取都由这一个短 context 约束；取消时
-	// net/http 会关闭在途连接。
+	// 私有 DialContext 从 Value 取回原始短 context，取消时关闭实际连接，
+	// 避免 net/http 为连接复用而脱离请求取消，遗留 TLS/代理握手。
 	lookupCtx, cancel := context.WithTimeout(ctx, budget)
 	defer cancel()
+	requestCtx := context.WithValue(lookupCtx, retrieveLinkContextKey{}, lookupCtx)
 
-	req, err := http.NewRequestWithContext(lookupCtx, http.MethodGet,
+	req, err := http.NewRequestWithContext(requestCtx, http.MethodGet,
 		provider.networkConfig.BaseURL+providerUtils.GetPathFromContext(ctx, gateVideosPath+"/"+url.PathEscape(taskID)+"/content"), nil)
 	if err != nil {
 		return ""

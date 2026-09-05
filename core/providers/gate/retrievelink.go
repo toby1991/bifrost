@@ -24,6 +24,10 @@ const retrieveLinkMaxBudget = 2 * time.Second
 // 外层剩余不足该余量时直链查询整体跳过。
 const retrieveLinkDeadlineReserve = 100 * time.Millisecond
 
+// retrieveLinkContextKey 保留取链原始 context；net/http 拨号时会移除请求
+// context 的取消信号与 deadline，但保留 Value。
+type retrieveLinkContextKey struct{}
+
 // retrieveLinkHopByHopHeaders 是 HTTP/1.1 逐跳头集合（providerUtils 内部的
 // hopByHopHeaders 不导出，这里保留一份拷贝）；context 透传头里的逐跳头必须排除。
 var retrieveLinkHopByHopHeaders = map[string]bool{
@@ -61,8 +65,21 @@ func newRetrieveLinkClient(networkConfig schemas.NetworkConfig, proxyConfig *sch
 	}
 
 	transport := &http.Transport{
-		Proxy:             proxyFunc,
-		DialContext:       dialContext,
+		Proxy: proxyFunc,
+		DialContext: func(ctx context.Context, networkName, addr string) (net.Conn, error) {
+			lookupCtx, ok := ctx.Value(retrieveLinkContextKey{}).(context.Context)
+			if !ok {
+				return nil, errors.New("missing gate retrieve link context")
+			}
+			conn, err := dialContext(lookupCtx, networkName, addr)
+			if err != nil {
+				return nil, err
+			}
+			// DNS/拨号使用原始预算；连接建立后继续绑定取消，覆盖 TLS 与
+			// CONNECT/SOCKS 握手。每次取链都会 cancel，且连接不复用。
+			context.AfterFunc(lookupCtx, func() { _ = conn.Close() })
+			return conn, nil
+		},
 		TLSClientConfig:   tlsConfig,
 		DisableKeepAlives: true,
 	}
