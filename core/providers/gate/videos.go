@@ -173,6 +173,26 @@ func newGateError(resp *fasthttp.Response, body []byte) *schemas.BifrostError {
 	}
 }
 
+// newRequestNotDispatchedError 构造"请求未发出"的预分发错误。
+// 该 code 只允许在任何字节发网之前产生（请求转换/请求序列化失败）；
+// 下游凭 Error.Code=request_not_dispatched 判定可安全退款。收到响应后的
+// 解析失败（ErrProviderResponseDecode 等）绝不得使用此 code。
+func newRequestNotDispatchedError(message string, err error) *schemas.BifrostError {
+	statusCode := http.StatusBadRequest
+	errorType := "invalid_request_error"
+	errorCode := "request_not_dispatched"
+	return &schemas.BifrostError{
+		IsBifrostError: true,
+		StatusCode:     &statusCode,
+		Error: &schemas.ErrorField{
+			Type:    &errorType,
+			Code:    &errorCode,
+			Message: message,
+			Error:   err,
+		},
+	}
+}
+
 // VideoGeneration submits a video generation task to Gate.
 // 幂等键只经既有 BifrostContextKeyExtraHeaders 契约透传为 Gate Idempotency-Key；
 // fallback/重试由调用方在 Core 入口层关闭，provider 本身不做任何重试。
@@ -186,13 +206,15 @@ func (provider *GateProvider) VideoGeneration(ctx *schemas.BifrostContext, key s
 
 	providerName := provider.GetProviderKey()
 
+	// 预分发失败（未发出任何字节）：标记 request_not_dispatched，
+	// 下游据此安全退还预留额度。
 	gateReq, err := ToGateVideoGenerationRequest(bifrostReq)
 	if err != nil {
-		return nil, providerUtils.NewBifrostOperationError(schemas.ErrRequestBodyConversion, err)
+		return nil, newRequestNotDispatchedError(schemas.ErrRequestBodyConversion, err)
 	}
 	jsonData, err := sonic.Marshal(gateReq)
 	if err != nil {
-		return nil, providerUtils.NewBifrostOperationError(schemas.ErrProviderRequestMarshal, err)
+		return nil, newRequestNotDispatchedError(schemas.ErrProviderRequestMarshal, err)
 	}
 
 	sendBackRawResponse := providerUtils.ShouldSendBackRawResponse(ctx, provider.sendBackRawResponse)
@@ -434,36 +456,61 @@ func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key sch
 }
 
 // fetchContentDirectURL 返回 completed 任务的临时下载直链，仅用于
-// VideoRetrieve 结果投影。只做 /content 第一跳：携带服务端凭证、
-// SkipBody 只读响应头、禁止跟随重定向；只接受 302 且 Location 通过
-// validateDownloadLocation。任何失败返回空串，由调用方保持 Videos 留空。
+// VideoRetrieve 结果投影。只做 /content 第一跳：使用 provider 私有的
+// net/http client（DisableKeepAlives，连接用后即关绝不回池，未读的 302
+// 正文不会污染任何复用连接），携带服务端凭证、只读响应头、CheckRedirect
+// 禁止跟随重定向；只接受 302 且 Location 通过 validateDownloadLocation。
+// 单次预算 = min(2s, provider 请求超时, 外层 context 剩余-100ms)；外层剩余
+// 不足 100ms 时整体跳过。任何失败返回空串，由调用方保持 Videos 留空。
 func (provider *GateProvider) fetchContentDirectURL(ctx *schemas.BifrostContext, key schemas.Key, taskID string) string {
-	req := fasthttp.AcquireRequest()
-	resp := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseRequest(req)
-	defer fasthttp.ReleaseResponse(resp)
+	// 构造期 fail-closed（如 CA/proxy secret 引用解析为空）：取链永远失败，
+	// 但绝不影响 VideoRetrieve 主流程。
+	if provider.retrieveLinkErr != nil || provider.retrieveLinkClient == nil {
+		return ""
+	}
 
-	providerUtils.SetExtraHeaders(ctx, req, provider.networkConfig.ExtraHeaders, nil)
+	// 单次取链预算：2s、provider 请求超时、外层 context 剩余（留 100ms
+	// 余量）三者取最小；外层剩余不足 100ms 时跳过本次取链。
+	budget := retrieveLinkMaxBudget
+	if provider.requestTimeout < budget {
+		budget = provider.requestTimeout
+	}
+	if deadline, ok := ctx.Deadline(); ok {
+		remaining := time.Until(deadline) - retrieveLinkDeadlineReserve
+		if remaining <= 0 {
+			return ""
+		}
+		if remaining < budget {
+			budget = remaining
+		}
+	}
+	// DNS、拨号、代理握手与响应头读取都由这一个短 context 约束；取消时
+	// net/http 会关闭在途连接。
+	lookupCtx, cancel := context.WithTimeout(ctx, budget)
+	defer cancel()
 
-	req.SetRequestURI(provider.networkConfig.BaseURL + providerUtils.GetPathFromContext(ctx, gateVideosPath+"/"+url.PathEscape(taskID)+"/content"))
-	req.Header.SetMethod(http.MethodGet)
+	req, err := http.NewRequestWithContext(lookupCtx, http.MethodGet,
+		provider.networkConfig.BaseURL+providerUtils.GetPathFromContext(ctx, gateVideosPath+"/"+url.PathEscape(taskID)+"/content"), nil)
+	if err != nil {
+		return ""
+	}
+	setRetrieveLinkExtraHeaders(ctx, req, provider.networkConfig.ExtraHeaders)
 	if key.Value.GetValue() != "" {
 		req.Header.Set("Authorization", "Bearer "+key.Value.GetValue())
 	}
 
-	// 只读响应头：302 不携带需要消费的正文，也不允许这里触及 CDN 内容。
-	resp.SkipBody = true
-
-	_, bifrostErr, wait := providerUtils.MakeRequestWithContext(ctx, provider.client, req, resp)
-	defer wait()
-	if bifrostErr != nil {
+	resp, err := provider.retrieveLinkClient.Do(req)
+	if err != nil {
 		return ""
 	}
+	// 302 可能携带正文：不读取也不 drain，直接 Close。DisableKeepAlives
+	// 保证未读字节随连接关闭被丢弃，绝不会污染任何复用连接。
+	defer resp.Body.Close()
 
-	if resp.StatusCode() != fasthttp.StatusFound {
+	if resp.StatusCode != http.StatusFound {
 		return ""
 	}
-	location := strings.TrimSpace(string(resp.Header.Peek("Location")))
+	location := strings.TrimSpace(resp.Header.Get("Location"))
 	if location == "" || validateDownloadLocation(location) != nil {
 		return ""
 	}
