@@ -13,6 +13,7 @@ package gate
 import (
 	"context"
 	"net"
+	"net/http"
 	"strings"
 	"time"
 
@@ -43,6 +44,9 @@ type GateProvider struct {
 	downloadClient       *fasthttp.Client // 下载第二跳的无状态 client 配置模板
 	downloadDial         func(context.Context, string, string) (net.Conn, error)
 	downloadTimeout      time.Duration
+	requestTimeout       time.Duration                 // provider 请求超时（取链预算的上限之一）
+	retrieveLinkClient   *http.Client                  // VideoRetrieve 直链查询专用的私有 client（与主连接池隔离）
+	retrieveLinkErr      error                         // 取链 client 构造错误；非 nil 时取链 fail-closed
 	networkConfig        schemas.NetworkConfig         // Network configuration including extra headers
 	customProviderConfig *schemas.CustomProviderConfig // Custom provider config
 	sendBackRawRequest   bool                          // Whether to include raw request in BifrostResponse
@@ -86,12 +90,19 @@ func NewGateProvider(config *schemas.ProviderConfig, logger schemas.Logger) (*Ga
 	}
 	downloadClient = providerUtils.ConfigureTLS(downloadClient, config.NetworkConfig, logger)
 
+	// 直链查询 client 与主 fasthttp 连接池完全隔离（DisableKeepAlives、
+	// 不跟随重定向）；构造错误只让取链 fail-closed，不影响提交/查询/下载。
+	retrieveLinkClient, retrieveLinkErr := newRetrieveLinkClient(config.NetworkConfig, config.ProxyConfig, logger)
+
 	return &GateProvider{
 		logger:               logger,
 		client:               client,
 		downloadClient:       downloadClient,
 		downloadDial:         network.SSRFSafeDialContext(ssrfDialTimeout),
 		downloadTimeout:      requestTimeout,
+		requestTimeout:       requestTimeout,
+		retrieveLinkClient:   retrieveLinkClient,
+		retrieveLinkErr:      retrieveLinkErr,
 		networkConfig:        config.NetworkConfig,
 		customProviderConfig: config.CustomProviderConfig,
 		sendBackRawRequest:   config.SendBackRawRequest,
