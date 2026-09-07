@@ -1,4 +1,4 @@
-# Core v1.8.4-toby.2 and Framework v1.6.0-toby.2
+# Core v1.8.4-toby.2 and Framework v1.6.0-toby.3
 
 This release completes the fork upgrade against the latest published legacy
 patches: Core `v1.7.4-toby.9` and Framework `v1.5.4-toby.1`. It retains the
@@ -67,3 +67,16 @@ layer; it is not a promise that all Core recovery paths issue only one call.
 Keep the official module import paths and replace both modules with the released
 fork versions. Consumers must regenerate their own dependency graph and sums,
 then build from the remote pins without a local workspace or replacement.
+
+```go
+replace github.com/maximhq/bifrost/core => github.com/toby1991/bifrost/core v1.8.4-toby.2
+replace github.com/maximhq/bifrost/framework => github.com/toby1991/bifrost/framework v1.6.0-toby.3
+```
+
+Both module tags resolve to `475da911f5e2fbf16792ca1bc0dfc86750c21db2`.
+Framework `v1.6.0-toby.2` was published first at that same commit, but the
+public Go proxy cached a failed GitHub fetch for it. Framework `.3` is an
+identical-source release with a fresh module version; neither tag was moved.
+Core `.2` and Framework `.3` have both been downloaded through the official
+Go proxy and verified against the public checksum database. All 789 Core and
+293 Framework compiler-input/module-manifest files match the tagged Git blobs.
