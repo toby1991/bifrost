@@ -132,6 +132,46 @@ func TestChatPricingSpecFixture(t *testing.T) {
 	assert.True(t, ChatPricingSpec().Fields[0].Required)
 }
 
+func TestCalculateChatUsageCostWithPricingRequestTypes(t *testing.T) {
+	pricing := Options{
+		InputCostPerToken:  bifrost.Ptr(1.0),
+		OutputCostPerToken: bifrost.Ptr(2.0),
+	}
+	usage := &schemas.BifrostLLMUsage{PromptTokens: 100, CompletionTokens: 10}
+	tests := []struct {
+		raw     schemas.RequestType
+		allowed bool
+	}{
+		{schemas.ChatCompletionRequest, true},
+		{schemas.ChatCompletionStreamRequest, true},
+		{schemas.TextCompletionRequest, false},
+		{schemas.TextCompletionStreamRequest, false},
+		{schemas.ResponsesRequest, false},
+		{schemas.ResponsesStreamRequest, false},
+		{schemas.WebSocketResponsesRequest, false},
+		{schemas.RealtimeRequest, false},
+		{schemas.CompactionRequest, false},
+		{schemas.BatchResultsRequest, false},
+		{schemas.EmbeddingRequest, false},
+		{schemas.UnknownRequest, false},
+		{"", false},
+		{"chat", false},
+		{"future_request", false},
+	}
+	for _, test := range tests {
+		t.Run(string(test.raw), func(t *testing.T) {
+			cost, err := CalculateChatUsageCostWithPricing(test.raw, usage, ChatCostContext{}, pricing)
+			if test.allowed {
+				require.NoError(t, err)
+				assert.Equal(t, 120.0, cost)
+				return
+			}
+			require.ErrorContains(t, err, "is not supported by chat pricing")
+			assert.Zero(t, cost)
+		})
+	}
+}
+
 func TestCalculateChatUsageCostWithPricingFixture(t *testing.T) {
 	pricing := Options{
 		InputCostPerToken:           bifrost.Ptr(0.00001),

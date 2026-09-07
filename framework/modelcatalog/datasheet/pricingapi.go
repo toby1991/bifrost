@@ -109,8 +109,8 @@ func CalculateChatUsageCostWithPricing(
 	ctx ChatCostContext,
 	pricing Options,
 ) (float64, error) {
-	mode, ok := NormalizeRequestType(raw)
-	if !ok || mode != chatPricingMode {
+	// 纯 Chat 计价只接受这两种原始请求，避免归一化后的批量请求误用同步费率。
+	if raw != schemas.ChatCompletionRequest && raw != schemas.ChatCompletionStreamRequest {
 		return 0, fmt.Errorf("request type %q is not supported by chat pricing", raw)
 	}
 	if usage == nil {
@@ -120,7 +120,7 @@ func CalculateChatUsageCostWithPricing(
 		return 0, err
 	}
 
-	row := convertEntryToTablePricing("", Entry{Mode: mode, Options: pricing})
+	row := convertEntryToTablePricing("", Entry{Mode: chatPricingMode, Options: pricing})
 	breakdown := computeTextCost(&row, usage, tierFromResponse(ctx.ServiceTier, ctx.Speed, ctx.InferenceGeo))
 	cost := 0.0
 	if breakdown != nil {
