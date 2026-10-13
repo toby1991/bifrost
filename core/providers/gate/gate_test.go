@@ -525,8 +525,10 @@ func TestGateVideoRetrieveMapping(t *testing.T) {
 		*resp.Videos[0].URL != "https://cdn.example.com/signed-direct.mp4" {
 		t.Fatalf("Videos = %+v", resp.Videos)
 	}
-	// 费用只写 Gate provider-local sidecar，Core 视频响应 schema 不扩张；
-	// 原始十进制必须逐字保留，不能经 float64 往返。
+	if resp.Usage == nil || resp.Usage.Cost == nil || resp.Usage.Cost.TotalCost != 1.0800000001 {
+		t.Fatalf("Usage = %+v, want standard settled cost", resp.Usage)
+	}
+	// 标准响应提供费用；旧 sidecar 仍逐字保留原始金额和币种。
 	if taskID, cost, currency, ok := SettledVideoBillingFromContext(ctx); !ok || taskID != resp.ID || cost != "1.0800000001" || currency != "USD" {
 		t.Fatalf("settled billing = task=%q cost=%q currency=%q ok=%v", taskID, cost, currency, ok)
 	}
@@ -549,8 +551,8 @@ func gateRetrieveEnvelope(jobID, status, billingStatus, billedCost string, termi
 	return string(body)
 }
 
-// TestGateVideoRetrieveSettledCostMatrix 锁定 provider-local 结算 sidecar：
-// 只有 terminal + settled + 有限非负十进制文本存在；文本必须逐字保留。
+// TestGateVideoRetrieveSettledCostMatrix 锁定标准 settled 费用与旧 sidecar：
+// 非终态、未结算和非法金额不伪造零；旧 sidecar 保持原始文本。
 func TestGateVideoRetrieveSettledCostMatrix(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -558,23 +560,29 @@ func TestGateVideoRetrieveSettledCostMatrix(t *testing.T) {
 		billingStatus string
 		billedCost    string
 		wantCost      string
+		wantStandard  string
 	}{
-		{"completed positive exact", "completed", "settled", "1.0800000001", "1.0800000001"},
-		{"completed zero exact", "completed", "settled", "0.0000000000", "0.0000000000"},
-		{"failed positive exact", "failed", "settled", "0.5000000000", "0.5000000000"},
-		{"failed zero", "failed", "settled", "0", "0"},
-		{"pending settled", "pending", "settled", "1.0", ""},
-		{"in progress settled", "in_progress", "settled", "1.0", ""},
-		{"completed pre deducted", "completed", "pre_deducted", "1.0", ""},
-		{"failed pre deducted", "failed", "pre_deducted", "1.0", ""},
-		{"missing billing status", "completed", "", "1.0", ""},
-		{"unknown billing status", "completed", "charged", "1.0", ""},
-		{"missing cost", "completed", "settled", "", ""},
-		{"invalid cost", "completed", "settled", "abc", ""},
-		{"negative cost", "completed", "settled", "-0.1", ""},
-		{"positive infinity", "completed", "settled", "Inf", ""},
-		{"negative infinity", "completed", "settled", "-Inf", ""},
-		{"nan", "completed", "settled", "NaN", ""},
+		{"completed positive exact", "completed", "settled", "1.0800000001", "1.0800000001", "1.0800000001"},
+		{"completed zero exact", "completed", "settled", "0.0000000000", "0.0000000000", "0"},
+		{"failed positive exact", "failed", "settled", "0.5000000000", "0.5000000000", "0.5"},
+		{"failed zero", "failed", "settled", "0", "0", "0"},
+		{"high precision rounds upward", "completed", "settled", "1.234567890123451", "1.234567890123451", "1.23456789012346"},
+		{"large high precision rounds upward", "completed", "settled", "1000000000.000001", "1000000000.000001", "1000000000.00001"},
+		{"tiny positive", "completed", "settled", "0." + strings.Repeat("0", 299) + "1", "0." + strings.Repeat("0", 299) + "1", "1e-300"},
+		{"positive underflow", "completed", "settled", "0." + strings.Repeat("0", 323) + "1", "0." + strings.Repeat("0", 323) + "1", "4.94065645841247e-324"},
+		{"overflow keeps legacy only", "completed", "settled", "1" + strings.Repeat("0", 309), "1" + strings.Repeat("0", 309), ""},
+		{"pending settled", "pending", "settled", "1.0", "", ""},
+		{"in progress settled", "in_progress", "settled", "1.0", "", ""},
+		{"completed pre deducted", "completed", "pre_deducted", "1.0", "", ""},
+		{"failed pre deducted", "failed", "pre_deducted", "1.0", "", ""},
+		{"missing billing status", "completed", "", "1.0", "", ""},
+		{"unknown billing status", "completed", "charged", "1.0", "", ""},
+		{"missing cost", "completed", "settled", "", "", ""},
+		{"invalid cost", "completed", "settled", "abc", "", ""},
+		{"negative cost", "completed", "settled", "-0.1", "", ""},
+		{"positive infinity", "completed", "settled", "Inf", "", ""},
+		{"negative infinity", "completed", "settled", "-Inf", "", ""},
+		{"nan", "completed", "settled", "NaN", "", ""},
 	}
 
 	for _, tt := range tests {
@@ -590,11 +598,30 @@ func TestGateVideoRetrieveSettledCostMatrix(t *testing.T) {
 			if bifrostErr != nil {
 				t.Fatalf("VideoRetrieve() error = %+v", bifrostErr.Error)
 			}
+			wantStatus := tt.status
+			if wantStatus == "pending" {
+				wantStatus = "queued"
+			}
+			if string(resp.Status) != wantStatus {
+				t.Fatalf("Status = %q, want %q; billing validity must not change task status", resp.Status, wantStatus)
+			}
 			if tt.status == "failed" && (resp.Error == nil || resp.Error.Code != "failed") {
 				t.Fatalf("failed response error = %+v", resp.Error)
 			}
 			if tt.status == "failed" && len(resp.Videos) != 0 {
 				t.Fatalf("failed response leaked download URL: %+v", resp.Videos)
+			}
+			if tt.wantStandard == "" {
+				if resp.Usage != nil && resp.Usage.Cost != nil {
+					t.Fatalf("unexpected standard cost: %+v", resp.Usage.Cost)
+				}
+			} else {
+				if resp.Usage == nil || resp.Usage.Cost == nil {
+					t.Fatalf("Usage = %+v, want standard cost %s", resp.Usage, tt.wantStandard)
+				}
+				if got := strconv.FormatFloat(resp.Usage.Cost.TotalCost, 'g', 15, 64); got != tt.wantStandard {
+					t.Fatalf("standard cost = %q, want %q", got, tt.wantStandard)
+				}
 			}
 			taskID, cost, currency, ok := SettledVideoBillingFromContext(ctx)
 			if tt.wantCost == "" {
@@ -651,6 +678,9 @@ func TestGateVideoRetrieveDirectURLFailureKeepsResult(t *testing.T) {
 			}
 			if len(resp.Videos) != 0 {
 				t.Fatalf("Videos = %+v, want empty on direct URL failure", resp.Videos)
+			}
+			if resp.Usage == nil || resp.Usage.Cost == nil || resp.Usage.Cost.TotalCost != 1.0800000001 {
+				t.Fatalf("Usage = %+v, want standard settled cost kept on direct URL failure", resp.Usage)
 			}
 			if _, cost, _, ok := SettledVideoBillingFromContext(ctx); !ok || cost != "1.0800000001" {
 				t.Fatalf("settled billing = cost=%q ok=%v, want exact positive amount kept", cost, ok)
@@ -730,6 +760,9 @@ func TestGateVideoRetrieveNonTerminalStripsTerminalFields(t *testing.T) {
 	if resp.CompletedAt != nil || resp.ExpiresAt != nil || len(resp.Videos) != 0 {
 		t.Fatalf("non-terminal response leaked terminal fields: %+v", resp)
 	}
+	if resp.Usage != nil && resp.Usage.Cost != nil {
+		t.Fatalf("non-terminal response leaked standard cost: %+v", resp.Usage.Cost)
+	}
 	if taskID, cost, currency, ok := SettledVideoBillingFromContext(ctx); ok || taskID != "" || cost != "" || currency != "" {
 		t.Fatalf("non-terminal response leaked settled billing: task=%q cost=%q currency=%q ok=%v", taskID, cost, currency, ok)
 	}
@@ -805,7 +838,10 @@ func TestGateVideoRetrieveClearsStaleSettledCost(t *testing.T) {
 			if tt.emptyID {
 				requestID = ""
 			}
-			_, _ = provider.VideoRetrieve(ctx, testKey("s"), &schemas.BifrostVideoRetrieveRequest{ID: requestID})
+			resp, _ := provider.VideoRetrieve(ctx, testKey("s"), &schemas.BifrostVideoRetrieveRequest{ID: requestID})
+			if resp != nil && resp.Usage != nil && resp.Usage.Cost != nil {
+				t.Fatalf("stale standard cost survived: %+v", resp.Usage.Cost)
+			}
 			if taskID, cost, currency, ok := SettledVideoBillingFromContext(ctx); ok || taskID != "" || cost != "" || currency != "" {
 				t.Fatalf("stale billing survived: task=%q cost=%q currency=%q ok=%v", taskID, cost, currency, ok)
 			}

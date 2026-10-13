@@ -321,8 +321,8 @@ func (provider *GateProvider) VideoGeneration(ctx *schemas.BifrostContext, key s
 }
 
 // VideoRetrieve retrieves the current state of a Gate video task.
-// 费用不扩展 Core response schema；合法的终态 settled 金额只写入
-// Gate-local context sidecar，由嵌入式调用方立即读取。
+// 合法的终态 settled 金额映射到既有 Usage.Cost；旧 context sidecar
+// 继续保留原始精确金额和币种，兼容尚未迁移的嵌入式消费者。
 func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key schemas.Key, bifrostReq *schemas.BifrostVideoRetrieveRequest) (*schemas.BifrostVideoGenerationResponse, *schemas.BifrostError) {
 	// context 可被上层复用；任何失败或非 settled 响应都不得泄漏上一次账单。
 	clearVideoSettledBilling(ctx)
@@ -462,6 +462,9 @@ func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key sch
 	// 必须是成功返回前的最后一次可观测写入：早于此处的任何错误
 	// 都会保持入口时的 cleared 状态。
 	if terminal && data.BillingStatus == "settled" && isNonNegativeDecimal(data.BilledCost) {
+		if cost, ok := normalizeVideoCost(data.BilledCost); ok {
+			bifrostResp.Usage = &schemas.VideoUsage{Cost: &schemas.BifrostCost{TotalCost: cost}}
+		}
 		setVideoSettledBilling(ctx, bifrostResp.ID, data.BilledCost, data.Currency)
 	}
 	return bifrostResp, nil

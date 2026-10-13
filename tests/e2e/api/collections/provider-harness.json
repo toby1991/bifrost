@@ -137417,6 +137417,112 @@
           ]
         }
       ]
+    },
+    {
+      "name": "62. Gate standard video cost",
+      "description": "Pins the existing native GET /v1/videos/{id} wire response after Gate maps terminal settled billed_cost into VideoUsage.Cost. Reuses the submit receipt from folder 61; filtering by this feature includes that producer automatically, so it creates at most the same one paid six-second video. Configure gate-harness exactly as folder 61 and enable INCLUDE_PREVIEW=1 for an explicit live run. Never automatically run this case during local development. It polls at ten-second intervals, at most 60 queries, until both the task and bill are final. The Cost object must exist even when its omitempty total_cost is absent for exact zero. Its 15-significant-digit decimal readback must not understate the exact upstream text. Go tests cover deterministic invalid costs, failed charged tasks, extreme underflow/overflow, ID mismatch and fail-soft download URL lookup.",
+      "item": [
+        {
+          "name": "[PREVIEW] Gate standard video cost: gate-harness/bytedance/seedance-2.0 retrieve settled fee",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-bf-send-back-raw-response",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/videos/{{gateRestorationVideoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "videos",
+                "{{gateRestorationVideoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([401, 403, 429, 500, 502, 503, 504].indexOf(pm.response.code) !== -1) { return; }",
+                  "pm.test('Gate standard-cost retrieve succeeds', function () {",
+                  "  pm.expect(pm.response.code, 'failed: ' + pm.response.text()).to.be.within(200, 299);",
+                  "});",
+                  "var j;",
+                  "try { j = pm.response.json(); } catch (e) {",
+                  "  pm.test('Gate standard-cost response is JSON', function () { pm.expect(false, 'failed: ' + pm.response.text()).to.eql(true); });",
+                  "  return;",
+                  "}",
+                  "var expectedId = decodeURIComponent(pm.collectionVariables.get('gateRestorationVideoId') || '');",
+                  "var rawResponse = (j.extra_fields || {}).raw_response;",
+                  "if (typeof rawResponse === 'string') { rawResponse = JSON.parse(rawResponse); }",
+                  "var data = (rawResponse || {}).data || {};",
+                  "pm.test('Standard fee belongs to the requested named Gate task', function () {",
+                  "  pm.expect(j.id, pm.response.text()).to.eql(expectedId);",
+                  "  pm.expect(data.job_id + ':gate-harness', pm.response.text()).to.eql(expectedId);",
+                  "  pm.expect(rawResponse && rawResponse.code, 'raw_response missing: ' + pm.response.text()).to.eql(200);",
+                  "});",
+                  "var terminal = j.status === 'completed' || j.status === 'failed';",
+                  "var settled = data.billing_status === 'settled';",
+                  "var cost = j.usage && j.usage.cost;",
+                  "if (!terminal || !settled) {",
+                  "  pm.test('Unfinished task or bill has no standard fee', function () { pm.expect(!!cost, pm.response.text()).to.eql(false); });",
+                  "  var previousTask = pm.collectionVariables.get('gateStandardCostPollTaskId');",
+                  "  var polls = previousTask === expectedId ? Number(pm.collectionVariables.get('gateStandardCostPollCount') || 0) + 1 : 1;",
+                  "  pm.collectionVariables.set('gateStandardCostPollTaskId', expectedId);",
+                  "  pm.collectionVariables.set('gateStandardCostPollCount', polls);",
+                  "  pm.test('Gate task and bill finish within 60 queries', function () { pm.expect(polls, 'last response: ' + pm.response.text()).to.be.below(60); });",
+                  "  if (polls < 60) { setTimeout(function () { pm.execution.setNextRequest(pm.info.requestName); }, 10000); }",
+                  "  return;",
+                  "}",
+                  "pm.collectionVariables.unset('gateStandardCostPollTaskId');",
+                  "pm.collectionVariables.unset('gateStandardCostPollCount');",
+                  "pm.test('Settled fee is standard, finite and nonnegative, including zero', function () {",
+                  "  pm.expect(!!cost && typeof cost === 'object', 'usage.cost missing: ' + pm.response.text()).to.eql(true);",
+                  "  if (!cost) { return; }",
+                  "  var total = cost.total_cost === undefined ? 0 : cost.total_cost;",
+                  "  pm.expect(typeof total === 'number' && isFinite(total) && total >= 0, pm.response.text()).to.eql(true);",
+                  "});",
+                  "// Compare exact decimal strings: Number(billed_cost) would hide precision loss.",
+                  "function decimalParts(value) {",
+                  "  var e = value.toLowerCase().split('e');",
+                  "  var m = e[0].split('.');",
+                  "  var exponent = e.length > 1 ? parseInt(e[1], 10) : 0;",
+                  "  var digits = m[0] + (m[1] || '');",
+                  "  var point = m[0].length + exponent;",
+                  "  while (point < 0) { digits = '0' + digits; point++; }",
+                  "  while (point > digits.length) { digits += '0'; }",
+                  "  return { integer: (digits.slice(0, point) || '0').replace(/^0+(?=[0-9])/, ''), fraction: digits.slice(point).replace(/0+$/, '') };",
+                  "}",
+                  "function compareDecimal(a, b) {",
+                  "  a = decimalParts(a); b = decimalParts(b);",
+                  "  if (a.integer.length !== b.integer.length) { return a.integer.length > b.integer.length ? 1 : -1; }",
+                  "  if (a.integer !== b.integer) { return a.integer > b.integer ? 1 : -1; }",
+                  "  var length = Math.max(a.fraction.length, b.fraction.length);",
+                  "  while (a.fraction.length < length) { a.fraction += '0'; }",
+                  "  while (b.fraction.length < length) { b.fraction += '0'; }",
+                  "  return a.fraction === b.fraction ? 0 : (a.fraction > b.fraction ? 1 : -1);",
+                  "}",
+                  "pm.test('Standard fee readback does not understate exact billed_cost', function () {",
+                  "  var validOriginal = typeof data.billed_cost === 'string' && /^[0-9]+(?:\\.[0-9]+)?$/.test(data.billed_cost);",
+                  "  pm.expect(validOriginal, 'invalid settled billed_cost: ' + pm.response.text()).to.eql(true);",
+                  "  if (!validOriginal || !cost) { return; }",
+                  "  var total = cost.total_cost === undefined ? 0 : cost.total_cost;",
+                  "  if (typeof total !== 'number' || !isFinite(total) || total < 0) { return; }",
+                  "  pm.expect(compareDecimal(total.toPrecision(15), data.billed_cost), 'standard fee understated billed_cost: ' + pm.response.text()).to.be.at.least(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

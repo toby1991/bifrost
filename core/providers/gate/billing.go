@@ -1,6 +1,12 @@
 package gate
 
-import schemas "github.com/maximhq/bifrost/core/schemas"
+import (
+	"math"
+	"math/big"
+	"strconv"
+
+	schemas "github.com/maximhq/bifrost/core/schemas"
+)
 
 type videoSubmissionBillingContextKey struct{}
 type videoSettledBillingContextKey struct{}
@@ -101,4 +107,34 @@ func isNonNegativeDecimal(value string) bool {
 		}
 	}
 	return dot != 0 && dot != len(value)-1
+}
+
+// normalizeVideoCost 将 Gate 精确金额映射到既有标准费用字段。
+// 按消费端的 15 位有效数字回读比较；只在回读会少计时推进到下一个
+// 可表示值，避免普通金额统一加 epsilon，也不让极小正数变成免费。
+func normalizeVideoCost(value string) (float64, bool) {
+	if !isNonNegativeDecimal(value) {
+		return 0, false
+	}
+	exact, ok := new(big.Rat).SetString(value)
+	if !ok {
+		return 0, false
+	}
+	cost, err := strconv.ParseFloat(value, 64)
+	if err != nil || math.IsInf(cost, 0) || math.IsNaN(cost) {
+		return 0, false
+	}
+	for {
+		readback, ok := new(big.Rat).SetString(strconv.FormatFloat(cost, 'g', 15, 64))
+		if !ok {
+			return 0, false
+		}
+		if readback.Cmp(exact) >= 0 {
+			return cost, true
+		}
+		cost = math.Nextafter(cost, math.Inf(1))
+		if math.IsInf(cost, 1) {
+			return 0, false
+		}
+	}
 }
