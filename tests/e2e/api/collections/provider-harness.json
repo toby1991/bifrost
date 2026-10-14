@@ -60,7 +60,7 @@
           "// Otherwise newman reports it as passing (because of an early return) which is misleading next to a failing status.",
           "var __u = (pm.request && pm.request.url && pm.request.url.toString()) || '';",
           "// Management API (/api/...) and OAuth (/oauth2/...) responses carry no inference content, so the shape check does not apply to them; those rows assert their own bodies.",
-          "var __skipShape = __u.indexOf('/health') !== -1 || __u.indexOf('/.well-known/') !== -1 || __u.indexOf('/api/') !== -1 || __u.indexOf('/oauth2/') !== -1 || (__u.indexOf('/files/') !== -1 && (__u.indexOf('/content?') !== -1 || __u.slice(-8) === '/content')) || __u.indexOf('storage.googleapis.com') !== -1 || __u.indexOf('batchPredictionJobs') !== -1 || (__u.indexOf('/genai/v1beta/batches/') !== -1 && __u.indexOf(':cancel') !== -1) || (__u.indexOf('cachedContents') !== -1 && (pm.request.method !== 'GET' || __u.indexOf('/cachedContents/') !== -1)) || __u.indexOf('/v1/containers') !== -1 || __u.indexOf('/upload/v1beta/files') !== -1 || (__u.indexOf('/genai/v1beta/files/') !== -1 && pm.request.method === 'DELETE') || (__u.indexOf('/model-invocation-job/') !== -1 && __u.slice(-5) === '/stop') || (__u.indexOf('/messages/batches/') !== -1 && __u.indexOf('/results') !== -1) || __u.indexOf('/tunedModels') !== -1 || __u.indexOf('/bedrock_passthrough/') !== -1 || (__u.indexOf('/interactions/') !== -1 && pm.request.method === 'DELETE');",
+          "var __skipShape = __u.indexOf('/health') !== -1 || __u.indexOf('/.well-known/') !== -1 || __u.indexOf('/api/') !== -1 || __u.indexOf('/oauth2/') !== -1 || (__u.indexOf('/files/') !== -1 && (__u.indexOf('/content?') !== -1 || __u.slice(-8) === '/content')) || /\\/v1\\/videos\\/[^/]+\\/content(?:\\?|$)/.test(__u) || __u.indexOf('storage.googleapis.com') !== -1 || __u.indexOf('batchPredictionJobs') !== -1 || (__u.indexOf('/genai/v1beta/batches/') !== -1 && __u.indexOf(':cancel') !== -1) || (__u.indexOf('cachedContents') !== -1 && (pm.request.method !== 'GET' || __u.indexOf('/cachedContents/') !== -1)) || __u.indexOf('/v1/containers') !== -1 || __u.indexOf('/upload/v1beta/files') !== -1 || (__u.indexOf('/genai/v1beta/files/') !== -1 && pm.request.method === 'DELETE') || (__u.indexOf('/model-invocation-job/') !== -1 && __u.slice(-5) === '/stop') || (__u.indexOf('/messages/batches/') !== -1 && __u.indexOf('/results') !== -1) || __u.indexOf('/tunedModels') !== -1 || __u.indexOf('/bedrock_passthrough/') !== -1 || (__u.indexOf('/interactions/') !== -1 && pm.request.method === 'DELETE');",
           "if (pm.response.code < 400 && !__skipShape && (pm.response.headers.get('content-type') || '').indexOf('text/event-stream') === -1 && (pm.response.headers.get('content-type') || '').indexOf('vnd.amazon.eventstream') === -1 && (pm.response.headers.get('content-type') || '').indexOf('audio/') === -1) {",
           "  pm.test('Response has content (text or tool_use)', function () {",
           "    var j;",
@@ -262119,6 +262119,325 @@
               ]
             }
           }
+        }
+      ]
+    },
+    {
+      "name": "61. Gate video contract restoration",
+      "description": "Regression coverage for the core/v1.7.4-toby.7 through .9 contracts restored on core/v1.8.4. Configure a named provider called gate-harness with custom_provider_config.base_provider_type=\"gate\", a valid Gate credential and allowed_requests.video_generation/video_retrieve/video_download=true (or omit allowed_requests). Its model is bytedance/seedance-2.0. The named instance is intentional: returning :gate instead of :gate-harness loses the configured credential when the client retrieves or downloads the job.\n\nAll three rows are [PREVIEW] because the provider is account-scoped and a live run creates one six-second 720p video. Use PROVIDER=gate FEATURE=\"gate video contract\" INCLUDE_PREVIEW=1 against an already configured gateway. No live calls are needed for structural validation. Submit captures the opaque ID; retrieve polls at ten-second intervals, at most 60 queries; download depends on a completed retrieve. Filtering to download automatically includes both producers. Raw-request/response headers make resolution and duration projection independently observable. A healthy completed task must yield the HTTPS first-hop direct URL and a video/mp4 download. Never request that direct URL from a Postman script.\n\nThe Go Gate tests own deterministic fault injection for disabled operations, undispatched submissions, missing/invalid Location, fail-soft link lookup, cancellation across DNS/TLS/proxy CONNECT, credential isolation and stream ownership. Those internal faults cannot be induced reliably against a live paid endpoint; a link lookup failure is allowed to keep the completed result with no videos, and is tested at the Go boundary rather than accepted as a happy-path harness pass.",
+      "item": [
+        {
+          "name": "[PREVIEW] Gate video contract: gate-harness/bytedance/seedance-2.0 submit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-bf-send-back-raw-request",
+                "value": "true"
+              },
+              {
+                "key": "x-bf-send-back-raw-response",
+                "value": "true"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model\": \"gate-harness/bytedance/seedance-2.0\",\n  \"prompt\": \"A small red ball rests on a plain white table. Static camera.\",\n  \"seconds\": \"6\",\n  \"resolution\": \"720p\",\n  \"aspect_ratio\": \"16:9\",\n  \"audio\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/videos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "videos"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// A rerun must not reuse a task left by an earlier successful submission.",
+                  "pm.collectionVariables.unset('gateRestorationVideoId');",
+                  "pm.collectionVariables.unset('gateRestorationCompletedVideoId');",
+                  "pm.collectionVariables.set('gateRestorationPollCount', 0);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([401, 403, 429, 500, 502, 503, 504].indexOf(pm.response.code) !== -1) { return; }",
+                  "pm.test('Named Gate submit succeeds', function () {",
+                  "  pm.expect(pm.response.code, 'failed: ' + pm.response.text()).to.be.within(200, 299);",
+                  "});",
+                  "var j;",
+                  "try { j = pm.response.json(); } catch (e) {",
+                  "  pm.test('Gate response is JSON', function () { pm.expect(false, 'failed: ' + pm.response.text()).to.eql(true); });",
+                  "  return;",
+                  "}",
+                  "var rawRequest = (j.extra_fields || {}).raw_request;",
+                  "if (typeof rawRequest === 'string') { rawRequest = JSON.parse(rawRequest); }",
+                  "pm.test('Submit preserves the named provider in the public video ID', function () {",
+                  "  pm.expect(j.object, pm.response.text()).to.eql('video');",
+                  "  pm.expect(j.model, pm.response.text()).to.eql('bytedance/seedance-2.0');",
+                  "  pm.expect(j.id, 'wrong provider suffix: ' + pm.response.text()).to.match(/^.+:gate-harness$/);",
+                  "  pm.expect(['queued', 'in_progress', 'completed'].indexOf(j.status), pm.response.text()).to.be.above(-1);",
+                  "});",
+                  "pm.test('Neutral submit parameters reach the Gate wire request', function () {",
+                  "  pm.expect(!!rawRequest, 'raw_request missing: ' + pm.response.text()).to.eql(true);",
+                  "  if (!rawRequest) { return; }",
+                  "  pm.expect(rawRequest.model).to.eql('bytedance/seedance-2.0');",
+                  "  pm.expect(rawRequest.duration).to.eql(6);",
+                  "  pm.expect(rawRequest.resolution).to.eql('720p');",
+                  "  pm.expect(rawRequest.aspect_ratio).to.eql('16:9');",
+                  "  pm.expect(rawRequest.generate_audio).to.eql(false);",
+                  "});",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && /^.+:gate-harness$/.test(j.id || '') && ['queued', 'in_progress', 'completed'].indexOf(j.status) !== -1) {",
+                  "  pm.collectionVariables.set('gateRestorationVideoId', encodeURIComponent(j.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[PREVIEW] Gate video contract: gate-harness/bytedance/seedance-2.0 retrieve completed URL",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-bf-send-back-raw-response",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/videos/{{gateRestorationVideoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "videos",
+                "{{gateRestorationVideoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([401, 403, 429, 500, 502, 503, 504].indexOf(pm.response.code) !== -1) { return; }",
+                  "pm.collectionVariables.unset('gateRestorationCompletedVideoId');",
+                  "pm.test('Named Gate retrieve succeeds', function () {",
+                  "  pm.expect(pm.response.code, 'failed: ' + pm.response.text()).to.be.within(200, 299);",
+                  "});",
+                  "var j;",
+                  "try { j = pm.response.json(); } catch (e) {",
+                  "  pm.test('Gate response is JSON', function () { pm.expect(false, 'failed: ' + pm.response.text()).to.eql(true); });",
+                  "  return;",
+                  "}",
+                  "var expectedId = decodeURIComponent(pm.collectionVariables.get('gateRestorationVideoId') || '');",
+                  "var rawResponse = (j.extra_fields || {}).raw_response;",
+                  "if (typeof rawResponse === 'string') { rawResponse = JSON.parse(rawResponse); }",
+                  "var data = (rawResponse || {}).data || {};",
+                  "pm.test('Retrieve preserves the task identity and Gate status mapping', function () {",
+                  "  pm.expect(j.id, pm.response.text()).to.eql(expectedId);",
+                  "  pm.expect(j.object, pm.response.text()).to.eql('video');",
+                  "  pm.expect(rawResponse && rawResponse.code, 'raw_response missing: ' + pm.response.text()).to.eql(200);",
+                  "  pm.expect(data.job_id + ':gate-harness', pm.response.text()).to.eql(expectedId);",
+                  "  var statuses = { pending: 'queued', in_progress: 'in_progress', completed: 'completed', failed: 'failed' };",
+                  "  pm.expect(!!statuses[data.status], pm.response.text()).to.eql(true);",
+                  "  pm.expect(j.status, pm.response.text()).to.eql(statuses[data.status]);",
+                  "});",
+                  "pm.test('Gate resolution and duration project into neutral response fields', function () {",
+                  "  if (data.resolution) { pm.expect(j.size, 'resolution was lost: ' + pm.response.text()).to.eql(data.resolution); }",
+                  "  if (data.duration > 0) { pm.expect(j.seconds, pm.response.text()).to.eql(String(data.duration)); }",
+                  "});",
+                  "if (j.status === 'queued' || j.status === 'in_progress') {",
+                  "  pm.test('A pending Gate job has no completed asset', function () { pm.expect((j.videos || []).length, pm.response.text()).to.eql(0); });",
+                  "  var polls = Number(pm.collectionVariables.get('gateRestorationPollCount') || 0) + 1;",
+                  "  pm.collectionVariables.set('gateRestorationPollCount', polls);",
+                  "  pm.test('Gate video completes within 60 queries', function () { pm.expect(polls, 'last response: ' + pm.response.text()).to.be.below(60); });",
+                  "  if (polls < 60) { setTimeout(function () { pm.execution.setNextRequest(pm.info.requestName); }, 10000); }",
+                  "  return;",
+                  "}",
+                  "pm.test('Gate job reaches successful completion', function () { pm.expect(j.status, 'failed: ' + pm.response.text()).to.eql('completed'); });",
+                  "if (j.status !== 'completed') { return; }",
+                  "pm.test('Completed Gate response includes the actual resolution', function () {",
+                  "  pm.expect(typeof data.resolution === 'string' && data.resolution.length > 0, pm.response.text()).to.eql(true);",
+                  "  pm.expect(j.size, 'resolution was lost: ' + pm.response.text()).to.eql(data.resolution);",
+                  "});",
+                  "var videos = j.videos || [];",
+                  "var directURL = videos.length === 1 ? videos[0].url : '';",
+                  "pm.test('Completed Gate result contains the first-hop HTTPS URL', function () {",
+                  "  pm.expect(videos.length, 'completed result missing direct URL: ' + pm.response.text()).to.eql(1);",
+                  "  if (videos.length !== 1) { return; }",
+                  "  pm.expect(videos[0].type, pm.response.text()).to.eql('url');",
+                  "  pm.expect(videos[0].content_type, pm.response.text()).to.eql('video/mp4');",
+                  "  pm.expect(directURL, 'expected absolute HTTPS without userinfo: ' + pm.response.text()).to.match(/^https:\\/\\/[^\\s\\/?#@]+(?:[\\/?#][^\\s]*)?$/);",
+                  "  if (data.download_url) { pm.expect(directURL === data.download_url, 'Gate content endpoint was returned instead of its redirect Location').to.eql(false); }",
+                  "});",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && j.id === expectedId && videos.length === 1 && videos[0].type === 'url' && videos[0].content_type === 'video/mp4' && /^https:\\/\\/[^\\s\\/?#@]+(?:[\\/?#][^\\s]*)?$/.test(directURL || '') && directURL !== data.download_url) {",
+                  "  pm.collectionVariables.set('gateRestorationCompletedVideoId', encodeURIComponent(j.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[PREVIEW] Gate video contract: gate-harness/bytedance/seedance-2.0 download",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/videos/{{gateRestorationCompletedVideoId}}/content",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "videos",
+                "{{gateRestorationCompletedVideoId}}",
+                "content"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([401, 403, 429, 500, 502, 503, 504].indexOf(pm.response.code) !== -1) { return; }",
+                  "pm.test('Named Gate download returns video bytes', function () {",
+                  "  pm.expect(pm.response.code, 'failed: ' + pm.response.text().slice(0, 300)).to.eql(200);",
+                  "  pm.expect((pm.response.headers.get('content-type') || '').split(';')[0].trim()).to.eql('video/mp4');",
+                  "  pm.expect(pm.response.size().body, 'download body is empty').to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "62. Gate standard video cost",
+      "description": "Pins the existing native GET /v1/videos/{id} wire response after Gate maps terminal settled billed_cost into VideoUsage.Cost. Reuses the submit receipt from folder 61; filtering by this feature includes that producer automatically, so it creates at most the same one paid six-second video. Configure gate-harness exactly as folder 61 and enable INCLUDE_PREVIEW=1 for an explicit live run. Never automatically run this case during local development. It polls at ten-second intervals, at most 60 queries, until both the task and bill are final. The Cost object must exist even when its omitempty total_cost is absent for exact zero. Its 15-significant-digit decimal readback must not understate the exact upstream text. Go tests cover deterministic invalid costs, failed charged tasks, extreme underflow/overflow, ID mismatch and fail-soft download URL lookup.",
+      "item": [
+        {
+          "name": "[PREVIEW] Gate standard video cost: gate-harness/bytedance/seedance-2.0 retrieve settled fee",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-bf-send-back-raw-response",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/videos/{{gateRestorationVideoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "videos",
+                "{{gateRestorationVideoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if ([401, 403, 429, 500, 502, 503, 504].indexOf(pm.response.code) !== -1) { return; }",
+                  "pm.test('Gate standard-cost retrieve succeeds', function () {",
+                  "  pm.expect(pm.response.code, 'failed: ' + pm.response.text()).to.be.within(200, 299);",
+                  "});",
+                  "var j;",
+                  "try { j = pm.response.json(); } catch (e) {",
+                  "  pm.test('Gate standard-cost response is JSON', function () { pm.expect(false, 'failed: ' + pm.response.text()).to.eql(true); });",
+                  "  return;",
+                  "}",
+                  "var expectedId = decodeURIComponent(pm.collectionVariables.get('gateRestorationVideoId') || '');",
+                  "var rawResponse = (j.extra_fields || {}).raw_response;",
+                  "if (typeof rawResponse === 'string') { rawResponse = JSON.parse(rawResponse); }",
+                  "var data = (rawResponse || {}).data || {};",
+                  "pm.test('Standard fee belongs to the requested named Gate task', function () {",
+                  "  pm.expect(j.id, pm.response.text()).to.eql(expectedId);",
+                  "  pm.expect(data.job_id + ':gate-harness', pm.response.text()).to.eql(expectedId);",
+                  "  pm.expect(rawResponse && rawResponse.code, 'raw_response missing: ' + pm.response.text()).to.eql(200);",
+                  "});",
+                  "var terminal = j.status === 'completed' || j.status === 'failed';",
+                  "var settled = data.billing_status === 'settled';",
+                  "var cost = j.usage && j.usage.cost;",
+                  "if (!terminal || !settled) {",
+                  "  pm.test('Unfinished task or bill has no standard fee', function () { pm.expect(!!cost, pm.response.text()).to.eql(false); });",
+                  "  var previousTask = pm.collectionVariables.get('gateStandardCostPollTaskId');",
+                  "  var polls = previousTask === expectedId ? Number(pm.collectionVariables.get('gateStandardCostPollCount') || 0) + 1 : 1;",
+                  "  pm.collectionVariables.set('gateStandardCostPollTaskId', expectedId);",
+                  "  pm.collectionVariables.set('gateStandardCostPollCount', polls);",
+                  "  pm.test('Gate task and bill finish within 60 queries', function () { pm.expect(polls, 'last response: ' + pm.response.text()).to.be.below(60); });",
+                  "  if (polls < 60) { setTimeout(function () { pm.execution.setNextRequest(pm.info.requestName); }, 10000); }",
+                  "  return;",
+                  "}",
+                  "pm.collectionVariables.unset('gateStandardCostPollTaskId');",
+                  "pm.collectionVariables.unset('gateStandardCostPollCount');",
+                  "pm.test('Settled fee is standard, finite and nonnegative, including zero', function () {",
+                  "  pm.expect(!!cost && typeof cost === 'object', 'usage.cost missing: ' + pm.response.text()).to.eql(true);",
+                  "  if (!cost) { return; }",
+                  "  var total = cost.total_cost === undefined ? 0 : cost.total_cost;",
+                  "  pm.expect(typeof total === 'number' && isFinite(total) && total >= 0, pm.response.text()).to.eql(true);",
+                  "});",
+                  "// Compare exact decimal strings: Number(billed_cost) would hide precision loss.",
+                  "function decimalParts(value) {",
+                  "  var e = value.toLowerCase().split('e');",
+                  "  var m = e[0].split('.');",
+                  "  var exponent = e.length > 1 ? parseInt(e[1], 10) : 0;",
+                  "  var digits = m[0] + (m[1] || '');",
+                  "  var point = m[0].length + exponent;",
+                  "  while (point < 0) { digits = '0' + digits; point++; }",
+                  "  while (point > digits.length) { digits += '0'; }",
+                  "  return { integer: (digits.slice(0, point) || '0').replace(/^0+(?=[0-9])/, ''), fraction: digits.slice(point).replace(/0+$/, '') };",
+                  "}",
+                  "function compareDecimal(a, b) {",
+                  "  a = decimalParts(a); b = decimalParts(b);",
+                  "  if (a.integer.length !== b.integer.length) { return a.integer.length > b.integer.length ? 1 : -1; }",
+                  "  if (a.integer !== b.integer) { return a.integer > b.integer ? 1 : -1; }",
+                  "  var length = Math.max(a.fraction.length, b.fraction.length);",
+                  "  while (a.fraction.length < length) { a.fraction += '0'; }",
+                  "  while (b.fraction.length < length) { b.fraction += '0'; }",
+                  "  return a.fraction === b.fraction ? 0 : (a.fraction > b.fraction ? 1 : -1);",
+                  "}",
+                  "pm.test('Standard fee readback does not understate exact billed_cost', function () {",
+                  "  var validOriginal = typeof data.billed_cost === 'string' && /^[0-9]+(?:\\.[0-9]+)?$/.test(data.billed_cost);",
+                  "  pm.expect(validOriginal, 'invalid settled billed_cost: ' + pm.response.text()).to.eql(true);",
+                  "  if (!validOriginal || !cost) { return; }",
+                  "  var total = cost.total_cost === undefined ? 0 : cost.total_cost;",
+                  "  if (typeof total !== 'number' || !isFinite(total) || total < 0) { return; }",
+                  "  pm.expect(compareDecimal(total.toPrecision(15), data.billed_cost), 'standard fee understated billed_cost: ' + pm.response.text()).to.be.at.least(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     }
