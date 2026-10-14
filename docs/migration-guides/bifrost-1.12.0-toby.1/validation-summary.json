@@ -10,7 +10,8 @@
     "all_modules": "attempted; not fully passing; upstream Bedrock failure confirmed; environment fixture gaps logged separately",
     "core_all_modules": "incomplete diagnostic run interrupted after confirmed official blocker and stalled host-network tests",
     "framework_all_modules": "4545 passed / 61 failed / 210 skipped; missing local services",
-    "framework_plugins_retry": "17 passed / 14 failed; macOS dlopen chained-fixups error"
+    "framework_plugins_retry": "17 passed / 14 failed; macOS dlopen chained-fixups error",
+    "mcp_fixtures": "six Go and two Node fixtures built; targeted five top-level and two subtests pass; targeted race fails in unchanged official mcpServerPaths initialization"
   },
   "logs": [
     {
@@ -52,6 +53,10 @@
     {
       "path": "/private/tmp/bifrost-upgrade/logs/framework-environment-status.json",
       "sha256": "a557cfb0561165f6f431c69f6fa3b608a0d84b233ee956ef5ff101ca363c88fe"
+    },
+    {
+      "path": "/private/tmp/bifrost-upgrade/mcp-fixtures-verification.json",
+      "sha256": "4cd75c20cb0bdbba630a67513f3e00baf5c279343bed0b3c594301f4b68699a1"
     }
   ],
   "consumer_build": {

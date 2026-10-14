@@ -55,4 +55,6 @@ The initial Framework run recorded 4545 passing, 61 failing, and 210 skipped tes
 
 The first Core full run was interrupted after the official blocker was reproduced and its remaining host-network cases stalled. It is an incomplete diagnostic run, not a passing suite. MCP fixture preparation and targeted checks are reported separately; no initial missing-fixture failure is counted as a successful test.
 
+After six Go and two Node local MCP fixtures were built, all five targeted `TestToolsToExecute_*` top-level tests and two subtests passed without skips. The same targeted race run found concurrent initialization of the unmodified official `mcpServerPaths` global in `core/internal/mcptests/fixtures.go:42,49-55`. No official test-helper fix was added. The complete MCP suite/race gate is not declared passed.
+
 Next release attempt must start by rerunning the official failing assertion against an explicitly approved corrected upstream base. Then repeat the remaining full-module and TokenEx consumption gates before creating tags. Do not silently move the frozen official base or publish this candidate while the required gate is red.
