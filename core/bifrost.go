@@ -31,6 +31,7 @@ import (
 	"github.com/maximhq/bifrost/core/providers/deepseek"
 	"github.com/maximhq/bifrost/core/providers/elevenlabs"
 	"github.com/maximhq/bifrost/core/providers/fireworks"
+	"github.com/maximhq/bifrost/core/providers/gate"
 	"github.com/maximhq/bifrost/core/providers/gemini"
 	"github.com/maximhq/bifrost/core/providers/githubcopilot"
 	"github.com/maximhq/bifrost/core/providers/groq"
@@ -146,6 +147,7 @@ type Bifrost struct {
 	mcpCredStore        schemas.MCPCredentialStore          // Per-call credential resolver for MCP tool execution (wraps oauth2Provider for OAuth-flavored auth types)
 	mcpInitOnce         sync.Once                           // Ensures MCP manager is initialized only once
 	dropExcessRequests  atomic.Bool                         // If true, in cases where the queue is full, requests will not wait for the queue to be empty and will be dropped instead.
+	disableDynamicInit  bool                                // If true, request paths cannot lazily create missing providers.
 	keySelector         schemas.KeySelector                 // Custom key selector function
 	keyPoolFilter       schemas.KeyPoolFilter               // optional hook to veto keys before selection (nil = all eligible)
 	kvStore             schemas.KVStore                     // optional KV store for session stickiness (nil = disabled)
@@ -289,20 +291,21 @@ func Init(ctx context.Context, config schemas.BifrostConfig) (*Bifrost, error) {
 
 	bifrostCtx, cancel := schemas.NewBifrostContextWithCancel(ctx)
 	bifrost := &Bifrost{
-		ctx:           bifrostCtx,
-		cancel:        cancel,
-		account:       config.Account,
-		llmPlugins:    atomic.Pointer[[]schemas.LLMPlugin]{},
-		mcpPlugins:    atomic.Pointer[[]schemas.MCPPlugin]{},
-		a2aPlugins:    atomic.Pointer[[]schemas.A2APlugin]{},
-		requestQueues: sync.Map{},
-		waitGroups:    sync.Map{},
-		keySelector:   config.KeySelector,
-		keyPoolFilter: config.KeyPoolFilter,
-		mcpCredStore:  credstore.NewCredStore(config.OAuth2Provider, config.MCPHeadersProvider, config.Logger),
-		logger:        config.Logger,
-		kvStore:       config.KVStore,
-		modelCatalog:  config.ModelCatalog,
+		ctx:                bifrostCtx,
+		cancel:             cancel,
+		account:            config.Account,
+		llmPlugins:         atomic.Pointer[[]schemas.LLMPlugin]{},
+		mcpPlugins:         atomic.Pointer[[]schemas.MCPPlugin]{},
+		a2aPlugins:         atomic.Pointer[[]schemas.A2APlugin]{},
+		requestQueues:      sync.Map{},
+		waitGroups:         sync.Map{},
+		keySelector:        config.KeySelector,
+		keyPoolFilter:      config.KeyPoolFilter,
+		mcpCredStore:       credstore.NewCredStore(config.OAuth2Provider, config.MCPHeadersProvider, config.Logger),
+		logger:             config.Logger,
+		kvStore:            config.KVStore,
+		modelCatalog:       config.ModelCatalog,
+		disableDynamicInit: config.DisableDynamicProviderInitialization,
 	}
 	bifrost.tracer.Store(&tracerWrapper{tracer: tracer})
 	if config.LLMPlugins == nil {
@@ -4141,8 +4144,8 @@ func (bifrost *Bifrost) GetConfiguredProviders() ([]schemas.ModelProvider, error
 }
 
 // RemoveProvider removes a provider from the server.
-// This method gracefully stops all workers for the provider,
-// closes the request queue, and removes the provider from the providers slice.
+// This method gracefully signals and drains the provider queue, stops all
+// workers, and removes the provider from the providers slice.
 //
 // Parameters:
 //   - providerKey: The provider to remove
@@ -4150,6 +4153,12 @@ func (bifrost *Bifrost) GetConfiguredProviders() ([]schemas.ModelProvider, error
 // Returns:
 //   - error: Any error that occurred during the removal process
 func (bifrost *Bifrost) RemoveProvider(providerKey schemas.ModelProvider) error {
+	bifrost.providerLifecycleMu.RLock()
+	defer bifrost.providerLifecycleMu.RUnlock()
+	if bifrost.ctx.Err() != nil {
+		return fmt.Errorf("bifrost is shutting down")
+	}
+
 	bifrost.logger.Info("Removing provider %s", providerKey)
 	providerMutex := bifrost.getProviderMutex(providerKey)
 	providerMutex.Lock()
@@ -5017,6 +5026,8 @@ func (bifrost *Bifrost) createBaseProvider(providerKey schemas.ModelProvider, co
 		return deepseek.NewDeepSeekProvider(config, bifrost.logger)
 	case schemas.Wafer:
 		return wafer.NewWaferProvider(config, bifrost.logger)
+	case schemas.Gate:
+		return gate.NewGateProvider(config, bifrost.logger)
 	case schemas.Cloudflare:
 		return cloudflare.NewCloudflareProvider(config, bifrost.logger)
 	case schemas.Gemini:
@@ -5056,6 +5067,14 @@ func (bifrost *Bifrost) createBaseProvider(providerKey schemas.ModelProvider, co
 // It initializes the request queue and starts worker goroutines for processing requests.
 // Note: This function assumes the caller has already acquired the appropriate mutex for the provider.
 func (bifrost *Bifrost) prepareProvider(providerKey schemas.ModelProvider, config *schemas.ProviderConfig) error {
+	// Provider constructors validate and normalize the config. Do not publish
+	// queue state until construction succeeds, otherwise requests can enqueue
+	// onto a queue that has no workers.
+	provider, err := bifrost.createBaseProvider(providerKey, config)
+	if err != nil {
+		return fmt.Errorf("failed to create provider for the given key: %v", err)
+	}
+
 	// Create ProviderQueue with lifecycle management
 	pq := &ProviderQueue{
 		queue:      make(chan *ChannelMessage, config.ConcurrencyAndBufferSize.BufferSize),
@@ -5067,11 +5086,6 @@ func (bifrost *Bifrost) prepareProvider(providerKey schemas.ModelProvider, confi
 
 	// Start specified number of workers
 	bifrost.waitGroups.Store(providerKey, &sync.WaitGroup{})
-
-	provider, err := bifrost.createBaseProvider(providerKey, config)
-	if err != nil {
-		return fmt.Errorf("failed to create provider for the given key: %v", err)
-	}
 
 	waitGroupValue, _ := bifrost.waitGroups.Load(providerKey)
 	currentWaitGroup := waitGroupValue.(*sync.WaitGroup)
@@ -5102,11 +5116,15 @@ func (bifrost *Bifrost) prepareProvider(providerKey schemas.ModelProvider, confi
 }
 
 // getProviderQueue returns the ProviderQueue for a given provider key.
-// If the queue doesn't exist, it creates one at runtime and initializes the provider,
-// given the provider config is provided in the account interface implementation.
+// If the queue doesn't exist and dynamic provider initialization is enabled, it
+// creates one at runtime when the account provides a provider config.
 // This function uses read locks to prevent race conditions during provider updates.
 // Callers must check the closing flag or select on the done channel before sending.
 func (bifrost *Bifrost) getProviderQueue(providerKey schemas.ModelProvider) (*ProviderQueue, error) {
+	if bifrost.ctx.Err() != nil {
+		return nil, fmt.Errorf("bifrost is shutting down")
+	}
+
 	// Use read lock to allow concurrent reads but prevent concurrent updates
 	providerMutex := bifrost.getProviderMutex(providerKey)
 	providerMutex.RLock()
@@ -5118,8 +5136,17 @@ func (bifrost *Bifrost) getProviderQueue(providerKey schemas.ModelProvider) (*Pr
 	}
 
 	// Provider doesn't exist, need to create it
-	// Upgrade to write lock for creation
 	providerMutex.RUnlock()
+
+	// Serialize lazy publication with Shutdown. Established providers avoid the
+	// global lifecycle lock on the fast path above.
+	bifrost.providerLifecycleMu.RLock()
+	defer bifrost.providerLifecycleMu.RUnlock()
+	if bifrost.ctx.Err() != nil {
+		return nil, fmt.Errorf("bifrost is shutting down")
+	}
+
+	// Upgrade to write lock for creation
 	providerMutex.Lock()
 	defer providerMutex.Unlock()
 
@@ -5127,6 +5154,9 @@ func (bifrost *Bifrost) getProviderQueue(providerKey schemas.ModelProvider) (*Pr
 	if pqValue, exists := bifrost.requestQueues.Load(providerKey); exists {
 		pq := pqValue.(*ProviderQueue)
 		return pq, nil
+	}
+	if bifrost.disableDynamicInit {
+		return nil, fmt.Errorf("dynamic provider initialization is disabled for provider %s", providerKey)
 	}
 	bifrost.logger.Debug("Creating new request queue for provider %s at runtime", providerKey)
 	config, err := bifrost.account.GetConfigForProvider(providerKey)
@@ -5514,6 +5544,10 @@ func (bifrost *Bifrost) RunRealtimeTurnPreHooks(ctx *schemas.BifrostContext, req
 // getProviderByKey retrieves a provider instance from the providers array by its provider key.
 // Returns the provider if found, or nil if no provider with the given key exists.
 func (bifrost *Bifrost) getProviderByKey(providerKey schemas.ModelProvider) schemas.Provider {
+	if bifrost.ctx.Err() != nil {
+		return nil
+	}
+
 	providers := bifrost.providers.Load()
 	if providers == nil {
 		return nil
@@ -5524,6 +5558,32 @@ func (bifrost *Bifrost) getProviderByKey(providerKey schemas.ModelProvider) sche
 			return provider
 		}
 	}
+
+	// Serialize lazy publication with Shutdown. Existing provider lookups avoid
+	// the global lifecycle lock.
+	bifrost.providerLifecycleMu.RLock()
+	defer bifrost.providerLifecycleMu.RUnlock()
+	if bifrost.ctx.Err() != nil {
+		return nil
+	}
+	if bifrost.disableDynamicInit {
+		// Synchronize with an explicit UpdateProvider that may be publishing the
+		// provider after the initial lock-free snapshot above.
+		providerMutex := bifrost.getProviderMutex(providerKey)
+		providerMutex.RLock()
+		defer providerMutex.RUnlock()
+
+		providers = bifrost.providers.Load()
+		if providers != nil {
+			for _, provider := range *providers {
+				if provider.GetProviderKey() == providerKey {
+					return provider
+				}
+			}
+		}
+		return nil
+	}
+
 	// Could happen when provider is not initialized yet, check if provider config exists in account and if so, initialize it
 	config, err := bifrost.account.GetConfigForProvider(providerKey)
 	if err != nil || config == nil {

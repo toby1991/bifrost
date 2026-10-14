@@ -79,6 +79,22 @@ func TestBuildStreamingClient_BaseUnchanged(t *testing.T) {
 	}
 }
 
+func TestBuildStreamingClient_PreservesDisabledStaleConnectionRetry(t *testing.T) {
+	base := &fasthttp.Client{}
+	ConfigureDialerWithNetworkConfig(base, schemas.NetworkConfig{
+		DisableStaleConnectionRetry: true,
+	})
+
+	stream := BuildStreamingClient(base)
+	if stream.RetryIfErr == nil {
+		t.Fatal("streaming client should retain the explicit no-retry callback")
+	}
+	reset, retry := stream.RetryIfErr(nil, 1, fmt.Errorf("cannot find whitespace"))
+	if reset || retry {
+		t.Fatal("streaming client should not re-enable stale-connection retries")
+	}
+}
+
 // TestBuildStreamingClient_LongStreamSurvives verifies that a stream sending
 // chunks every 500ms for 2.5s (total) is not killed by the base client's 1s
 // ReadTimeout. The request goes through DoStreamingRequest, which is the
