@@ -35,13 +35,13 @@ Only local fixtures and isolated infrastructure are used; no paid provider calls
 - [x] Run Core and Framework complete local test sets and race checks, including the 12/40/7 old custom tests and official transport/terminal/tracing regressions.
 - [x] Run schema and local harness tests, including both Gate groups.
 - [x] Verify TokenEx against this candidate with an external modfile: production build, affected contract/race/coverage gates, local Responses/Chat/video/standard-cost/native-pricing E2E.
-- [ ] Freeze tested source and module-tree hashes; publish new immutable fork tags only after all required gates pass.
-- [ ] Download released modules through the public proxy/checksum path; compare their source with the tested trees.
-- [ ] Switch TokenEx's formal pins, repeat required consumption tests and RPC/API Docker builds, and inspect binary build information.
+- [x] Freeze tested source and module-tree hashes; publish new immutable fork tags only after all required gates pass.
+- [x] Download released modules through the public proxy/checksum path; compare their source with the tested trees.
+- [x] Switch TokenEx's formal pins, repeat required consumption tests and RPC/API Docker builds, and inspect binary build information.
 
 ## Release status
 
-All candidate gates are complete, including the full Core/Framework/MCP runs and TokenEx consumption gates. The release is ready for immutable tags; remote archive verification and the consumer's formal pin validation follow publication. Neither new tag has been published at this documentation checkpoint.
+Both immutable fork tags are published at `505ba99a3ca742f5f7ac7354b23b7821e5736424`: `core/v1.12.0-toby.1` and `framework/v1.9.0-toby.1`. Candidate gates, fresh remote archive verification and formal TokenEx consumer validation are complete. The hard cut is committed as `1ec703c2420bdfaf88a986a1bd5b671e8abbbd39`; generated Graphify artifacts are separately committed as `0a36746511d095674a7a62b960abcfd0c21d5cc8`. No deployment was performed.
 
 Tested implementation commit: `84d9fb743e0dbb5c4b0c9659450d7423b55349e2`. Core tree: `594c7f04a5b267a9e87cf73b72d3a890f712f6da`; Framework tree: `774d62524377814c2c296067bbc10dbb93861d1f`. Documentation-only commits may follow without changing these tested module trees.
 
@@ -56,6 +56,27 @@ Tested implementation commit: `84d9fb743e0dbb5c4b0c9659450d7423b55349e2`. Core t
 
 Core skips are 29 unchanged fixed cases and 48 cases requiring external provider/model credentials or instances. The full Framework runs use Go 1.27.0, CGO and matching plugin toolchains, eight real local service categories, PostgreSQL with fsync enabled on temporary memory storage, and the required free/occupied port layout. No missing service is accepted as a test skip.
 
+## Published source and formal consumer verification
+
+A new empty module cache downloaded both tags through `https://proxy.golang.org,direct` with `sum.golang.org` enabled. Every file, file set and `go.mod` byte was compared with archives generated from the published source; both module trees equal the tested implementation. The annotated tag objects are `dea60a690e9e99e2187fafa2e9d87b86f4b88b4f` (Core) and `2b6d454cb6b31feecf52eb8e9b13b8e788e35a7e` (Framework), both peeled to the release commit above.
+
+| Released module | Verified files | Module checksum | go.mod checksum |
+|---|---:|---|---|
+| Core `v1.12.0-toby.1` | 1,029 | `h1:2du5Pka044MGQxi5Pfs2/wV9elGf32wW0dP0HUndIM0=` | `h1:1jv4eNS9kAv36PWrXu02XZ+w4rhTQkXpXgZGvNlYl0A=` |
+| Framework `v1.9.0-toby.1` | 473 | `h1:UB5wY2cOwfMQE6EQ6uAtDbyf61k5DP/zzg21gdBsnlQ=` | `h1:Zi0jN2ch+eL6eo2v5Cuz1JmG8WsX4qxM6MLuHvS/eTQ=` |
+
+| Validation using formal remote pins | Completed result |
+|---|---|
+| Production compilation and module integrity | All production packages compile with `-mod=readonly`; `go mod verify` reports all modules verified. |
+| Frozen coverage proof identities | All 44 source hashes and remote module/checksum identities pass the original validator; exception set, target scope and 98% threshold remain unchanged. The complete coverage profile was measured before publication against byte-equivalent candidate modules; it is not relabeled as a new formal coverage run. |
+| Complete affected contracts, ordinary and race | Each run passes 1,958 test/subtest events across six packages, with zero failures, skips or race reports. |
+| Responses local HTTP/RPC E2E | 29 events pass; nine settled executions and three expected missing-evidence pending outcomes. All 16 frozen inputs are unchanged. |
+| Chat with real Account service | Three completed local-fixture calls and six verified account receipts; expected balances and zero residual reserves. |
+| Native pricing and Gate video E2E | Nine events pass with zero failures/skips; actual host service binaries contain the remote tags and exact checksums. |
+| RPC/API production Docker artifacts | Both original production Dockerfiles build successfully. Extracted binaries equal verified formal artifacts, including buildinfo; non-root entrypoints and help probes pass. |
+
+Formal testing made no source changes. The recorded `go.mod` SHA-256 is `6b8f545cb89366edb79978665615de9f2a89790a58369615fbdf212d31a39406`, and `go.sum` is `cdadb553be411083d2ed91f68ed535ac465de1e321ef62a103ef60b720b8d79b`. Candidate and formal raw evidence remain separately archived and linked in the JSON ledger. These post-publication documentation updates do not move either tag or modify either module tree.
+
 ## Recorded upstream outcomes
 
 `TestAnthropicIngressMantleReplayUsesResponsesInputShapes` fails at `core/providers/bedrock/bedrock_test.go:8039`: an assistant history item lacks the required Responses `status`. Untouched official `a86d489d99536adda3dc85869bc7782d682370d1` reproduces the same assertion; its Core tree equals official Core v1.12.0. No fix or weakened assertion was added.
@@ -66,7 +87,7 @@ The independently run official `TestToolsToExecute_* -race` subset reproduces co
 
 The consumer directly checks the new Conversation string/object union: every object and every nonblank string remains rejected; omitted/null/blank strings are accepted and cleared. The user also approved the required mirror of four new provider types and three technical permissions. Existing product request sets stay unchanged; no business HTTP/RPC endpoint or credential branch is added. The unavailable Cloudflare credential form is rejected before runtime construction. No old-SDK or running-request compatibility layer is introduced.
 
-The source changes and formal dependency pins will be committed together after release verification. Candidate production compilation, 349 complete Responses cases, 62 request-contract race cases, 529 enum/provider cases in ordinary and race, real-Account Chat, and nine video/native-account integration events have passed. The original complete Go coverage gate passes 4,603 events across 29 owner packages plus Account quota, with all 32 fixed targets at the unchanged 98% effective threshold and zero failure/skip. The five consumer flow packages pass 2,087 race events with zero failure/skip/race report. Responses HTTP/RPC E2E passes 29 events, with nine settled executions and three expected evidence-pending outcomes. All inputs remain frozen.
+The Conversation adaptation, required technical mirror, formal `go.mod`/`go.sum` and updated pricing proof identities are committed together in the consumer hard cut. It retains official module/import paths, replaces only the two modules with the remote fork tags and contains no local-path replacement. Candidate production compilation, 349 complete Responses cases, 62 request-contract race cases, 529 enum/provider cases in ordinary and race, real-Account Chat, and nine video/native-account integration events have passed. The original complete Go coverage gate passes 4,603 events across 29 owner packages plus Account quota, with all 32 fixed targets at the unchanged 98% effective threshold and zero failure/skip. The five consumer flow packages pass 2,087 race events with zero failure/skip/race report. Responses HTTP/RPC E2E passes 29 events, with nine settled executions and three expected evidence-pending outcomes. All inputs remain frozen.
 
 Earlier diagnostic attempts remain in the raw records: the initial Framework run had missing services (4,545 passes / 61 failures / 210 skips), macOS plugin loading failed, and early Core/MCP runs were incomplete or lacked fixtures. They are superseded by the complete Linux and fixture-backed results above. The host's reserved-name/TEST-NET behavior was separately reproduced and resolved by running the exact affected tests in network-isolated Linux. Slow PostgreSQL disk-backed attempts are explicitly incomplete; the final ordinary and race runs both use fresh, fully configured fixtures.
 

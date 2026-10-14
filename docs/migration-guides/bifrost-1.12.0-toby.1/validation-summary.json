@@ -5,7 +5,7 @@
     "core": "594c7f04a5b267a9e87cf73b72d3a890f712f6da",
     "framework": "774d62524377814c2c296067bbc10dbb93861d1f"
   },
-  "gate": "candidate_gates_complete_ready_for_tag",
+  "gate": "published_and_formal_consumer_validated",
   "release_policy": "Independently reproduced official failures are recorded without official code changes. Unexplained failures, missing infrastructure and migration regressions block release.",
   "validation": {
     "legacy_custom_tests": "12 Core, 40 Gate and 7 Framework tests preserved; existing focused normal/race evidence retained",
@@ -202,7 +202,7 @@
         "changed_archived_files": []
       },
       "evidence": "/private/tmp/bifrost-upgrade/continuation/framework/verification.json",
-      "sha256": "0604e18dd4843c874d9c58ef9f43f9e62e4558caa36e4af10f587c0d0558f603"
+      "sha256": "54fb3bfdf554d2a94a373828a5a10e27acfa027d16c56607825f7fb0bc8abd42"
     },
     "mcp_full_normal": {
       "passed": 709,
@@ -586,16 +586,80 @@
       "upstream": "local_free_fixture",
       "input_changes": [],
       "evidence": "/private/tmp/bifrost-upgrade/continuation/tokenex/responses-candidate-e2e.summary.json"
+    },
+    "formal_remote_pin": {
+      "status": "all_required_formal_checks_passed",
+      "release_commit": "505ba99a3ca742f5f7ac7354b23b7821e5736424",
+      "consumer_hard_cut_commit": "1ec703c2420bdfaf88a986a1bd5b671e8abbbd39",
+      "generated_graph_commit": "0a36746511d095674a7a62b960abcfd0c21d5cc8",
+      "formal_mod_sha256": "6b8f545cb89366edb79978665615de9f2a89790a58369615fbdf212d31a39406",
+      "formal_sum_sha256": "cdadb553be411083d2ed91f68ed535ac465de1e321ef62a103ef60b720b8d79b",
+      "source_changes_for_formal_testing": [],
+      "checks": {
+        "all_production_packages": "passed",
+        "go_mod_verify": "all modules verified",
+        "proof_sources": 44,
+        "normal_contract_events": 1958,
+        "race_contract_events": 1958,
+        "contract_failures": 0,
+        "contract_skips": 0,
+        "race_reports": 0,
+        "responses_e2e_events": 29,
+        "chat_completed_executions": 3,
+        "chat_account_receipts": 6,
+        "video_native_events": 9,
+        "rpc_api_production_images": 2
+      },
+      "candidate_full_coverage": "4603 pass, all 32 fixed targets meet unchanged 98% effective threshold; measurement before publication uses byte-identical source and modules",
+      "evidence": {
+        "path": "/private/tmp/bifrost-upgrade/continuation/formal-pin/verification.json",
+        "sha256": "cd72d0ae5c0f8dd1f19ca0e9268dc822b7b8f222e200076a8787cd2fa39075d1"
+      },
+      "check_evidence": {
+        "remote_modules": {
+          "path": "/private/tmp/bifrost-upgrade/continuation/remote-module-verification.json",
+          "sha256": "173053afeabefab76163ce3a339b12afbaf0c48b74c52471ecd38a4f3ba5372d"
+        },
+        "proofs": {
+          "path": "/private/tmp/bifrost-upgrade/continuation/formal-pin/proof-validation.json",
+          "sha256": "c3d7ebb8acab7c2efdfc470dd92306587dad73ba81736817ed8d2f0e2dae2d0b"
+        },
+        "all_production_build": {
+          "path": "/private/tmp/bifrost-upgrade/continuation/formal-pin/production-build.json",
+          "sha256": "7c3369ef91545e85c9aba3bba186eb13e33c9448a17a5392098f3b8753b45385"
+        },
+        "contracts": {
+          "path": "/private/tmp/bifrost-upgrade/continuation/formal-pin/contracts/gate.json",
+          "sha256": "df0a11d76abddd640b49a18049b130b54be2c25e631335f89f1c4da792bbc9b3"
+        },
+        "responses": {
+          "path": "/private/tmp/bifrost-upgrade/continuation/tokenex/responses-formal-e2e.summary.json",
+          "sha256": "f2ff4f192ac1265f86134634c803c9a8fef069ee6e0143fad0503e23dc1f4d3a"
+        },
+        "chat": {
+          "path": "/private/tmp/bifrost-upgrade/continuation/chat-e2e/formal-summary.json",
+          "sha256": "1d9a693e267e8b085841c313277bba370acd1d27d290b4fc7decbfe0c4856468"
+        },
+        "video_native": {
+          "path": "/private/tmp/bifrost-upgrade/continuation/tokenex/video-native-formal.combined.json",
+          "sha256": "b85e0129e2bb0476336a0381f381fda77caed46746bc83579c067afaadd2aed8"
+        },
+        "docker": {
+          "path": "/private/tmp/bifrost-upgrade/continuation/docker-release/runs/20261014T155937Z-cc84f78d/verification.json",
+          "sha256": "436384a9b1be0af45c0d3b4edb661afdcd5519588af89cea244662c733049171"
+        }
+      },
+      "automatic_deployment": false
     }
   },
   "release": {
-    "status": "ready_for_tag",
+    "status": "published_and_formal_consumer_validated",
     "planned_tags": [
       "core/v1.12.0-toby.1",
       "framework/v1.9.0-toby.1"
     ],
-    "tags_created": false,
-    "pushed": false,
+    "tags_created": true,
+    "pushed": true,
     "tested_implementation_head": "84d9fb743e0dbb5c4b0c9659450d7423b55349e2",
     "module_trees": {
       "core": "594c7f04a5b267a9e87cf73b72d3a890f712f6da",
@@ -605,8 +669,8 @@
       {
         "module": "github.com/toby1991/bifrost/core",
         "version": "v1.12.0-toby.1",
-        "revision": "84d9fb743e0dbb5c4b0c9659450d7423b55349e2",
-        "archive": "/private/tmp/bifrost-upgrade/continuation/release-source/core-expected.zip",
+        "revision": "505ba99a3ca742f5f7ac7354b23b7821e5736424",
+        "archive": "/private/tmp/bifrost-upgrade/continuation/release-final-source/core-expected.zip",
         "h1": "h1:2du5Pka044MGQxi5Pfs2/wV9elGf32wW0dP0HUndIM0=",
         "zip_sha256": "4b9476ffc091dc1fe4a5eb13f37c0c251ce72a519aa7644a1fbdbf398462a73e",
         "file_count": 1029
@@ -614,15 +678,89 @@
       {
         "module": "github.com/toby1991/bifrost/framework",
         "version": "v1.9.0-toby.1",
-        "revision": "84d9fb743e0dbb5c4b0c9659450d7423b55349e2",
-        "archive": "/private/tmp/bifrost-upgrade/continuation/release-source/framework-expected.zip",
+        "revision": "505ba99a3ca742f5f7ac7354b23b7821e5736424",
+        "archive": "/private/tmp/bifrost-upgrade/continuation/release-final-source/framework-expected.zip",
         "h1": "h1:UB5wY2cOwfMQE6EQ6uAtDbyf61k5DP/zzg21gdBsnlQ=",
         "zip_sha256": "d1c4860d3ebda6ac2ae4fd30703bdd8b585938ccac617c8c0ed2bd5af34b1417",
         "file_count": 473
       }
     ],
-    "formal_consumer_pins_changed": false,
-    "automatic_deployment": false
+    "formal_consumer_pins_changed": true,
+    "automatic_deployment": false,
+    "release_commit": "505ba99a3ca742f5f7ac7354b23b7821e5736424",
+    "published_tags": [
+      {
+        "name": "core/v1.12.0-toby.1",
+        "object": "dea60a690e9e99e2187fafa2e9d87b86f4b88b4f",
+        "commit": "505ba99a3ca742f5f7ac7354b23b7821e5736424"
+      },
+      {
+        "name": "framework/v1.9.0-toby.1",
+        "object": "2b6d454cb6b31feecf52eb8e9b13b8e788e35a7e",
+        "commit": "505ba99a3ca742f5f7ac7354b23b7821e5736424"
+      }
+    ],
+    "remote_verification": {
+      "status": "passed",
+      "fresh_cache": true,
+      "goproxy": "https://proxy.golang.org,direct",
+      "gosumdb": "sum.golang.org",
+      "module_source_files": {
+        "core": 1029,
+        "framework": 473
+      },
+      "all_files_equal": true,
+      "modules": [
+        {
+          "module": "github.com/toby1991/bifrost/core",
+          "version": "v1.12.0-toby.1",
+          "sum": "h1:2du5Pka044MGQxi5Pfs2/wV9elGf32wW0dP0HUndIM0=",
+          "go_mod_sum": "h1:1jv4eNS9kAv36PWrXu02XZ+w4rhTQkXpXgZGvNlYl0A=",
+          "file_count": 1029,
+          "all_files_equal": true,
+          "source_commit": "505ba99a3ca742f5f7ac7354b23b7821e5736424",
+          "archive_sha256": "4b9476ffc091dc1fe4a5eb13f37c0c251ce72a519aa7644a1fbdbf398462a73e",
+          "origin": {
+            "VCS": "git",
+            "URL": "https://github.com/toby1991/bifrost",
+            "Subdir": "core",
+            "Hash": "505ba99a3ca742f5f7ac7354b23b7821e5736424",
+            "Ref": "refs/tags/core/v1.12.0-toby.1"
+          },
+          "zip": "/private/tmp/bifrost-upgrade/remote-modcache/cache/download/github.com/toby1991/bifrost/core/@v/v1.12.0-toby.1.zip",
+          "dir": "/private/tmp/bifrost-upgrade/remote-modcache/github.com/toby1991/bifrost/core@v1.12.0-toby.1"
+        },
+        {
+          "module": "github.com/toby1991/bifrost/framework",
+          "version": "v1.9.0-toby.1",
+          "sum": "h1:UB5wY2cOwfMQE6EQ6uAtDbyf61k5DP/zzg21gdBsnlQ=",
+          "go_mod_sum": "h1:Zi0jN2ch+eL6eo2v5Cuz1JmG8WsX4qxM6MLuHvS/eTQ=",
+          "file_count": 473,
+          "all_files_equal": true,
+          "source_commit": "505ba99a3ca742f5f7ac7354b23b7821e5736424",
+          "archive_sha256": "d1c4860d3ebda6ac2ae4fd30703bdd8b585938ccac617c8c0ed2bd5af34b1417",
+          "origin": {
+            "VCS": "git",
+            "URL": "https://github.com/toby1991/bifrost",
+            "Subdir": "framework",
+            "Hash": "505ba99a3ca742f5f7ac7354b23b7821e5736424",
+            "Ref": "refs/tags/framework/v1.9.0-toby.1"
+          },
+          "zip": "/private/tmp/bifrost-upgrade/remote-modcache/cache/download/github.com/toby1991/bifrost/framework/@v/v1.9.0-toby.1.zip",
+          "dir": "/private/tmp/bifrost-upgrade/remote-modcache/github.com/toby1991/bifrost/framework@v1.9.0-toby.1"
+        }
+      ],
+      "evidence": {
+        "path": "/private/tmp/bifrost-upgrade/continuation/remote-module-verification.json",
+        "sha256": "173053afeabefab76163ce3a339b12afbaf0c48b74c52471ecd38a4f3ba5372d"
+      }
+    },
+    "consumer_hard_cut_commit": "1ec703c2420bdfaf88a986a1bd5b671e8abbbd39",
+    "generated_graph_commit": "0a36746511d095674a7a62b960abcfd0c21d5cc8",
+    "formal_mod_sha256": "6b8f545cb89366edb79978665615de9f2a89790a58369615fbdf212d31a39406",
+    "formal_sum_sha256": "cdadb553be411083d2ed91f68ed535ac465de1e321ef62a103ef60b720b8d79b",
+    "tags_are_immutable": true,
+    "post_tag_changes": "Migration documentation only; tested and published Core/Framework module trees unchanged."
   },
   "evidence": {
     "mcp": "/private/tmp/bifrost-upgrade/continuation/mcp/verification.json",
@@ -668,6 +806,14 @@
     "consumer_complete": {
       "path": "/private/tmp/bifrost-upgrade/continuation/tokenex/candidate-verification.json",
       "sha256": "1aa62b0e3b795164a2fca7b9e1605a30ceedf0dc32162148d33ffca83a0e45da"
+    },
+    "remote_modules": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/remote-module-verification.json",
+      "sha256": "173053afeabefab76163ce3a339b12afbaf0c48b74c52471ecd38a4f3ba5372d"
+    },
+    "formal_consumer_complete": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/formal-pin/verification.json",
+      "sha256": "cd72d0ae5c0f8dd1f19ca0e9268dc822b7b8f222e200076a8787cd2fa39075d1"
     }
   },
   "historical_runs": [
@@ -747,11 +893,5 @@
     }
   ],
   "unresolved_migration_regressions": [],
-  "remaining_work": [
-    "Publish immutable fork tags",
-    "Verify remote archives and checksums against tested module trees",
-    "Switch formal TokenEx dependencies and proof identities",
-    "Validate formal consumption and production Docker artifacts",
-    "Commit consumer hard cut atomically; retain generated graph separately"
-  ]
+  "remaining_work": []
 }

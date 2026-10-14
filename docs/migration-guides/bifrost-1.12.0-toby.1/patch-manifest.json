@@ -1165,14 +1165,14 @@
       "verification_ref": "#/verification_groups/schema_and_harness"
     }
   ],
-  "status": "preservation_verified_candidate_gates_complete",
+  "status": "published_preservation_verified_formal_consumer_validated",
   "known_upstream_issue": {
     "test": "TestAnthropicIngressMantleReplayUsesResponsesInputShapes",
     "path": "core/providers/bedrock/bedrock_test.go:8039",
     "official_commit": "a86d489d99536adda3dc85869bc7782d682370d1",
     "same_core_as": "2a4c51b2cc25f995bb8d20825fe7a34be902ae60",
     "result": "fails on untouched official tree and candidate; assistant historical message lacks required status",
-    "action": "Record as independently reproduced official issue; do not change official logic. Publish only after all remaining required gates are completed and other failures are resolved."
+    "action": "Recorded as an independently reproduced official issue without code or assertion changes. All other required release and consumer gates are complete."
   },
   "release_policy": "Only independently reproduced official failures are recorded as known baseline; unexplained failures, environment gaps and migration regressions block.",
   "verification_groups": {
@@ -2902,5 +2902,37 @@
     "official_roundtripper_byte_identical": true
   },
   "unclassified_entries": [],
-  "release_gate_ref": "validation-summary.json"
+  "release_gate_ref": "validation-summary.json",
+  "published_release": {
+    "release_commit": "505ba99a3ca742f5f7ac7354b23b7821e5736424",
+    "module_trees": {
+      "core": "594c7f04a5b267a9e87cf73b72d3a890f712f6da",
+      "framework": "774d62524377814c2c296067bbc10dbb93861d1f"
+    },
+    "tags": [
+      {
+        "name": "core/v1.12.0-toby.1",
+        "object": "dea60a690e9e99e2187fafa2e9d87b86f4b88b4f",
+        "commit": "505ba99a3ca742f5f7ac7354b23b7821e5736424"
+      },
+      {
+        "name": "framework/v1.9.0-toby.1",
+        "object": "2b6d454cb6b31feecf52eb8e9b13b8e788e35a7e",
+        "commit": "505ba99a3ca742f5f7ac7354b23b7821e5736424"
+      }
+    ],
+    "remote_modules_equal_tested_source": true,
+    "remote_module_evidence": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/remote-module-verification.json",
+      "sha256": "173053afeabefab76163ce3a339b12afbaf0c48b74c52471ecd38a4f3ba5372d"
+    },
+    "consumer_hard_cut_commit": "1ec703c2420bdfaf88a986a1bd5b671e8abbbd39",
+    "formal_validation_ref": "validation-summary.json#/consumer_validation/formal_remote_pin",
+    "formal_validation_evidence": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/formal-pin/verification.json",
+      "sha256": "cd72d0ae5c0f8dd1f19ca0e9268dc822b7b8f222e200076a8787cd2fa39075d1"
+    },
+    "unresolved_migration_regressions": [],
+    "automatic_deployment": false
+  }
 }
