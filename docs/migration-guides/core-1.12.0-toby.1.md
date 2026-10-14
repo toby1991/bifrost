@@ -27,34 +27,47 @@ The machine-readable `bifrost-1.12.0-toby.1/patch-manifest.json` records every o
 
 ## Validation contract
 
-Only local fixtures and isolated infrastructure are used; no paid provider calls or production configuration. Expected upstream live-provider/fixed skips are itemized separately from the required test set. A failure or unexpected skip in the required set blocks publication and dependency switching; upstream product bugs are reported, not fixed in this upgrade.
+Only local fixtures and isolated infrastructure are used; no paid provider calls or production configuration. Expected upstream live-provider/fixed skips are itemized separately from the required test set. In the approved continuation, a failure independently reproduced on the unchanged official tag is recorded as a known upstream issue rather than fixed or treated as a fork regression. Unexplained failures, environment gaps, unexpected skips and migration regressions still block publication and dependency switching.
 
 - [x] Freeze exact module tags, commits and complete source diffs.
 - [x] Complete every preservation disposition with zero unclassified entries.
 - [x] Review both directions: all old contracts preserved; target-relative diff contains only approved patches/adaptations.
-- [ ] Run Core and Framework complete local test sets and race checks, including the 12/40/7 old custom tests and official transport/terminal/tracing regressions.
+- [x] Run Core and Framework complete local test sets and race checks, including the 12/40/7 old custom tests and official transport/terminal/tracing regressions.
 - [x] Run schema and local harness tests, including both Gate groups.
-- [ ] Verify TokenEx against this candidate with an external modfile: production build, affected contract/race/coverage gates, local Responses/Chat/video/standard-cost/native-pricing E2E.
+- [x] Verify TokenEx against this candidate with an external modfile: production build, affected contract/race/coverage gates, local Responses/Chat/video/standard-cost/native-pricing E2E.
 - [ ] Freeze tested source and module-tree hashes; publish new immutable fork tags only after all required gates pass.
 - [ ] Download released modules through the public proxy/checksum path; compare their source with the tested trees.
 - [ ] Switch TokenEx's formal pins, repeat required consumption tests and RPC/API Docker builds, and inspect binary build information.
 
 ## Release status
 
-Implementation is complete, but publication is blocked by an upstream test failure. Neither new module tag has been published and TokenEx's formal dependencies have not been changed.
+All candidate gates are complete, including the full Core/Framework/MCP runs and TokenEx consumption gates. The release is ready for immutable tags; remote archive verification and the consumer's formal pin validation follow publication. Neither new tag has been published at this documentation checkpoint.
 
-`TestAnthropicIngressMantleReplayUsesResponsesInputShapes` fails at `core/providers/bedrock/bedrock_test.go:8039`: an assistant history message reaches the Responses wire without its required `status` field. The same assertion fails on an untouched export of official commit `a86d489d99536adda3dc85869bc7782d682370d1` (whose Core tree is exactly Core v1.12.0), so this is not a fork migration regression. The supplied fixture is entirely local. No upstream fix or test weakening has been added.
+Tested implementation commit: `84d9fb743e0dbb5c4b0c9659450d7423b55349e2`. Core tree: `594c7f04a5b267a9e87cf73b72d3a890f712f6da`; Framework tree: `774d62524377814c2c296067bbc10dbb93861d1f`. Documentation-only commits may follow without changing these tested module trees.
 
-The passing focused gates are: all 12 legacy Core custom tests under race; all 40 Gate top-level tests (163 test/subtest events) normally and under race; all 577 datasheet test/subtest events normally and under race; all 431 utils top-level tests (5627 test/subtest events) in a network-isolated Linux container; schema tests normally and under race; and the local Gate/harness contract tests. These results do not mean the complete Core/Framework gate passed.
+| Validation | Completed result |
+|---|---|
+| Core complete ordinary / race coverage | All 51 packages covered in each mode; 19,135 passing test/subtest events, 77 classified skips, four raw host assertion failures per mode. Three environment failures pass in isolated Linux CGO/race; the remaining assertion is the independently reproduced official Bedrock issue. |
+| Framework complete Linux ordinary | 5,218 passing events, zero failures, three explicit performance opt-in skips. |
+| Framework complete Linux race | 5,217 passing events, zero failures or race reports, the same three performance skips and one unchanged official tracing race skip. |
+| Complete MCP ordinary / race | Each run has 709 passing events and 29 classified skips, with zero failures/race reports. These are a subset of the Core total. |
+| Preserved custom tests | All original 12 Core, 40 Gate and seven pricing tests retained; pricing has two necessary new compatibility tests. No old assertion was removed. |
+| Perimeter | Schema ordinary/race; 11 Gate, 21 chain, 43 shard, three HTTP status and two decision contract tests passed. Both old Gate harness group objects and all 299 official groups are preserved. |
 
-The prepublication TokenEx build using an external candidate modfile also exposed a required consumer adaptation: `llmgw/internal/logic/responses/request.go:159` treats `OpenAIResponsesRequest.Conversation` as `*string`, while official Core v1.12.0 uses the `ResponsesResponseConversation` string/object union. The compiler rejects the existing `strings.TrimSpace(*request.Conversation)` expression. TokenEx source and formal dependency pins remain untouched; this incompatibility is recorded rather than hidden by modifying the official schema.
+Core skips are 29 unchanged fixed cases and 48 cases requiring external provider/model credentials or instances. The full Framework runs use Go 1.27.0, CGO and matching plugin toolchains, eight real local service categories, PostgreSQL with fsync enabled on temporary memory storage, and the required free/occupied port layout. No missing service is accepted as a test skip.
 
-Initial full-module runs also exposed missing local test infrastructure. The source-wide allocation audit passed after the unchanged transports/plugins trees were checked out. The two host-specific DNS/network assertions also failed on the untouched official tree and passed in the network-isolated container. Other missing MCP/vector/plugin fixtures are tracked as incomplete, not relabeled as passed. Full logs and their hashes are listed in `bifrost-1.12.0-toby.1/validation-summary.json`.
+## Recorded upstream outcomes
 
-The initial Framework run recorded 4545 passing, 61 failing, and 210 skipped test events. Local vector services were absent. After the plugin examples were checked out, the plugin retry still hit a macOS `dlopen` chained-fixups error (17 passing / 14 failing events); this has not been established as an upstream product bug. All newly created vector-service setup was stopped and cleaned when the deterministic official Core failure closed the publication gate. The complete service-backed Framework and full-module race gates remain unfulfilled.
+`TestAnthropicIngressMantleReplayUsesResponsesInputShapes` fails at `core/providers/bedrock/bedrock_test.go:8039`: an assistant history item lacks the required Responses `status`. Untouched official `a86d489d99536adda3dc85869bc7782d682370d1` reproduces the same assertion; its Core tree equals official Core v1.12.0. No fix or weakened assertion was added.
 
-The first Core full run was interrupted after the official blocker was reproduced and its remaining host-network cases stalled. It is an incomplete diagnostic run, not a passing suite. MCP fixture preparation and targeted checks are reported separately; no initial missing-fixture failure is counted as a successful test.
+The independently run official `TestToolsToExecute_* -race` subset reproduces concurrent initialization of `mcpServerPaths` in `core/internal/mcptests/fixtures.go`. The unchanged complete suite initializes that state earlier and passes; both outcomes are retained. The Framework `TestPopulateLLMResponseAttributes_RacesReleaseTrace` skip in race builds is also unchanged official code, not a new passing result.
 
-After six Go and two Node local MCP fixtures were built, all five targeted `TestToolsToExecute_*` top-level tests and two subtests passed without skips. The same targeted race run found concurrent initialization of the unmodified official `mcpServerPaths` global in `core/internal/mcptests/fixtures.go:42,49-55`. No official test-helper fix was added. The complete MCP suite/race gate is not declared passed.
+## Consumer adaptation and prior attempts
 
-Next release attempt must start by rerunning the official failing assertion against an explicitly approved corrected upstream base. Then repeat the remaining full-module and TokenEx consumption gates before creating tags. Do not silently move the frozen official base or publish this candidate while the required gate is red.
+The consumer directly checks the new Conversation string/object union: every object and every nonblank string remains rejected; omitted/null/blank strings are accepted and cleared. The user also approved the required mirror of four new provider types and three technical permissions. Existing product request sets stay unchanged; no business HTTP/RPC endpoint or credential branch is added. The unavailable Cloudflare credential form is rejected before runtime construction. No old-SDK or running-request compatibility layer is introduced.
+
+The source changes and formal dependency pins will be committed together after release verification. Candidate production compilation, 349 complete Responses cases, 62 request-contract race cases, 529 enum/provider cases in ordinary and race, real-Account Chat, and nine video/native-account integration events have passed. The original complete Go coverage gate passes 4,603 events across 29 owner packages plus Account quota, with all 32 fixed targets at the unchanged 98% effective threshold and zero failure/skip. The five consumer flow packages pass 2,087 race events with zero failure/skip/race report. Responses HTTP/RPC E2E passes 29 events, with nine settled executions and three expected evidence-pending outcomes. All inputs remain frozen.
+
+Earlier diagnostic attempts remain in the raw records: the initial Framework run had missing services (4,545 passes / 61 failures / 210 skips), macOS plugin loading failed, and early Core/MCP runs were incomplete or lacked fixtures. They are superseded by the complete Linux and fixture-backed results above. The host's reserved-name/TEST-NET behavior was separately reproduced and resolved by running the exact affected tests in network-isolated Linux. Slow PostgreSQL disk-backed attempts are explicitly incomplete; the final ordinary and race runs both use fresh, fully configured fixtures.
+
+The machine-readable manifest links all 61 old files and the four new constructor adaptations to their test groups. `bifrost-1.12.0-toby.1/validation-summary.json` records current results, retained attempts, source hashes and log locations. No paid upstream provider, production configuration, historical pending execution or automatic deployment is part of this work.

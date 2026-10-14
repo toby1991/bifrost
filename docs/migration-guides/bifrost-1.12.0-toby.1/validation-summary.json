@@ -1,74 +1,757 @@
 {
-  "implementation_head": "e20023c58c92a121a7988ab2f41db74f59cfe604",
-  "gate": "blocked",
-  "validation": {
-    "core_legacy_race": "12 passed",
-    "gate": "40 top-level tests / 163 test events passed; normal and race",
-    "framework_datasheet": "577 test events passed; normal and race",
-    "utils_isolated_linux": "431 top-level tests / 5627 test events passed; zero skipped",
-    "perimeter": "11 gate + 21 chain + 43 shard + 3 HTTP status + 2 decision; schema normal/race passed",
-    "all_modules": "attempted; not fully passing; upstream Bedrock failure confirmed; environment fixture gaps logged separately",
-    "core_all_modules": "incomplete diagnostic run interrupted after confirmed official blocker and stalled host-network tests",
-    "framework_all_modules": "4545 passed / 61 failed / 210 skipped; missing local services",
-    "framework_plugins_retry": "17 passed / 14 failed; macOS dlopen chained-fixups error",
-    "mcp_fixtures": "six Go and two Node fixtures built; targeted five top-level and two subtests pass; targeted race fails in unchanged official mcpServerPaths initialization"
+  "schema_version": 2,
+  "implementation_head": "84d9fb743e0dbb5c4b0c9659450d7423b55349e2",
+  "module_trees": {
+    "core": "594c7f04a5b267a9e87cf73b72d3a890f712f6da",
+    "framework": "774d62524377814c2c296067bbc10dbb93861d1f"
   },
-  "logs": [
-    {
-      "path": "/private/tmp/bifrost-upgrade/upstream-bedrock-replay-control.log",
-      "sha256": "c442110f025442cdf74ba40ceb72fec5aa5a6e0a5456c1448482cbf2dda03147"
+  "gate": "candidate_gates_complete_ready_for_tag",
+  "release_policy": "Independently reproduced official failures are recorded without official code changes. Unexplained failures, missing infrastructure and migration regressions block release.",
+  "validation": {
+    "legacy_custom_tests": "12 Core, 40 Gate and 7 Framework tests preserved; existing focused normal/race evidence retained",
+    "core_all_modules": {
+      "complete": true,
+      "package_counts": {
+        "normal": 51,
+        "race_merged": 51,
+        "race_this_run": 50,
+        "race_reused_mcp": 1
+      },
+      "raw_host_counts": {
+        "normal": {
+          "pass": 19135,
+          "fail": 4,
+          "skip": 77
+        },
+        "race_merged": {
+          "pass": 19135,
+          "fail": 4,
+          "skip": 77
+        }
+      },
+      "normal_top_level_counts": {
+        "pass": 4809,
+        "fail": 4,
+        "skip": 75
+      },
+      "skip_classification": {
+        "upstream_fixed_skip": 29,
+        "real_remote_provider_not_configured": 48
+      },
+      "full_suite_data_race_reports": 0,
+      "unexplained_failures": [],
+      "source_changes_made_for_tests": false,
+      "environment_resolution": "All three raw host DNS/network failures pass in isolated Linux CGO/race with network disabled.",
+      "remaining_official_issue": "TestAnthropicIngressMantleReplayUsesResponsesInputShapes; unmodified official tag reproduces it.",
+      "evidence": "/private/tmp/bifrost-upgrade/continuation/core-full/verification.json",
+      "evidence_sha256": "d40591f3bf3b2025553c4f56bff2fbecc6f4eaf942e6813dc9a2ee5583be1226"
     },
-    {
-      "path": "/private/tmp/bifrost-upgrade/core-utils-isolated-full.log",
-      "sha256": "821b5f2bde634471dac79564776510f9d51f2ace64a05b1619710d87075824f8"
+    "framework_all_modules": {
+      "complete": true,
+      "ordinary": {
+        "exit_code": 0,
+        "counts": {
+          "pass": 5218,
+          "skip": 3
+        },
+        "skip_categories": {
+          "explicit-opt-in": 3
+        },
+        "required_cases_missing": [],
+        "race_reports": 0
+      },
+      "race": {
+        "exit_code": 0,
+        "counts": {
+          "pass": 5217,
+          "skip": 4
+        },
+        "skip_categories": {
+          "explicit-opt-in": 3,
+          "official-fixed-skip": 1
+        },
+        "required_cases_missing": [],
+        "race_reports": 0
+      },
+      "skipped_tests": {
+        "ordinary": [
+          {
+            "package": "github.com/maximhq/bifrost/framework/configstore",
+            "test": "TestMigrationMergeOauthTokenTablesPerf",
+            "elapsed": 0,
+            "output": [
+              "=== RUN   TestMigrationMergeOauthTokenTablesPerf",
+              "migrations_perf_test.go:354: set BIFROST_RUN_MIGRATION_PERF_TESTS=1 to run this migration performance test (seeds ~1,000,000 rows; slow by design)",
+              "--- SKIP: TestMigrationMergeOauthTokenTablesPerf (0.00s)"
+            ],
+            "category": "explicit-opt-in",
+            "source_file": "framework/configstore/migrations_perf_test.go",
+            "source_blobs": {
+              "candidate": "6a25a2a3f32f04b6581c2348972ed3e06dd21aa7",
+              "official": "6a25a2a3f32f04b6581c2348972ed3e06dd21aa7"
+            },
+            "unchanged_from_official": true
+          },
+          {
+            "package": "github.com/maximhq/bifrost/framework/configstore",
+            "test": "TestMigrationCreateMCPOauthFlowsTablePerf",
+            "elapsed": 0,
+            "output": [
+              "=== RUN   TestMigrationCreateMCPOauthFlowsTablePerf",
+              "migrations_perf_test.go:588: set BIFROST_RUN_MIGRATION_PERF_TESTS=1 to run this migration performance test (seeds ~1,000,000 rows; slow by design)",
+              "--- SKIP: TestMigrationCreateMCPOauthFlowsTablePerf (0.00s)"
+            ],
+            "category": "explicit-opt-in",
+            "source_file": "framework/configstore/migrations_perf_test.go",
+            "source_blobs": {
+              "candidate": "6a25a2a3f32f04b6581c2348972ed3e06dd21aa7",
+              "official": "6a25a2a3f32f04b6581c2348972ed3e06dd21aa7"
+            },
+            "unchanged_from_official": true
+          },
+          {
+            "package": "github.com/maximhq/bifrost/framework/logstore",
+            "test": "TestScalePostgresLogstoreMigrations",
+            "elapsed": 0,
+            "output": [
+              "=== RUN   TestScalePostgresLogstoreMigrations",
+              "migrations_scale_test.go:32: set BIFROST_SCALE_MIGRATION_TEST=1 to run the destructive large Postgres migration test",
+              "--- SKIP: TestScalePostgresLogstoreMigrations (0.00s)"
+            ],
+            "category": "explicit-opt-in",
+            "source_file": "framework/logstore/migrations_scale_test.go",
+            "source_blobs": {
+              "candidate": "717b38938020af91e3de8c138baff44b2be1b4f1",
+              "official": "717b38938020af91e3de8c138baff44b2be1b4f1"
+            },
+            "unchanged_from_official": true
+          }
+        ],
+        "race": [
+          {
+            "package": "github.com/maximhq/bifrost/framework/configstore",
+            "test": "TestMigrationMergeOauthTokenTablesPerf",
+            "elapsed": 0,
+            "output": [
+              "=== RUN   TestMigrationMergeOauthTokenTablesPerf",
+              "migrations_perf_test.go:354: set BIFROST_RUN_MIGRATION_PERF_TESTS=1 to run this migration performance test (seeds ~1,000,000 rows; slow by design)",
+              "--- SKIP: TestMigrationMergeOauthTokenTablesPerf (0.00s)"
+            ],
+            "category": "explicit-opt-in",
+            "source_file": "framework/configstore/migrations_perf_test.go",
+            "source_blobs": {
+              "candidate": "6a25a2a3f32f04b6581c2348972ed3e06dd21aa7",
+              "official": "6a25a2a3f32f04b6581c2348972ed3e06dd21aa7"
+            },
+            "unchanged_from_official": true
+          },
+          {
+            "package": "github.com/maximhq/bifrost/framework/configstore",
+            "test": "TestMigrationCreateMCPOauthFlowsTablePerf",
+            "elapsed": 0,
+            "output": [
+              "=== RUN   TestMigrationCreateMCPOauthFlowsTablePerf",
+              "migrations_perf_test.go:588: set BIFROST_RUN_MIGRATION_PERF_TESTS=1 to run this migration performance test (seeds ~1,000,000 rows; slow by design)",
+              "--- SKIP: TestMigrationCreateMCPOauthFlowsTablePerf (0.00s)"
+            ],
+            "category": "explicit-opt-in",
+            "source_file": "framework/configstore/migrations_perf_test.go",
+            "source_blobs": {
+              "candidate": "6a25a2a3f32f04b6581c2348972ed3e06dd21aa7",
+              "official": "6a25a2a3f32f04b6581c2348972ed3e06dd21aa7"
+            },
+            "unchanged_from_official": true
+          },
+          {
+            "package": "github.com/maximhq/bifrost/framework/logstore",
+            "test": "TestScalePostgresLogstoreMigrations",
+            "elapsed": 0,
+            "output": [
+              "=== RUN   TestScalePostgresLogstoreMigrations",
+              "migrations_scale_test.go:32: set BIFROST_SCALE_MIGRATION_TEST=1 to run the destructive large Postgres migration test",
+              "--- SKIP: TestScalePostgresLogstoreMigrations (0.00s)"
+            ],
+            "category": "explicit-opt-in",
+            "source_file": "framework/logstore/migrations_scale_test.go",
+            "source_blobs": {
+              "candidate": "717b38938020af91e3de8c138baff44b2be1b4f1",
+              "official": "717b38938020af91e3de8c138baff44b2be1b4f1"
+            },
+            "unchanged_from_official": true
+          },
+          {
+            "package": "github.com/maximhq/bifrost/framework/tracing",
+            "test": "TestPopulateLLMResponseAttributes_RacesReleaseTrace",
+            "elapsed": 0,
+            "output": [
+              "=== RUN   TestPopulateLLMResponseAttributes_RacesReleaseTrace",
+              "spanhandle_recycle_test.go:134: trace recycling races are still open; this guards the segfault in non-race builds",
+              "--- SKIP: TestPopulateLLMResponseAttributes_RacesReleaseTrace (0.00s)"
+            ],
+            "category": "official-fixed-skip",
+            "source_file": "framework/tracing/spanhandle_recycle_test.go",
+            "source_blobs": {
+              "candidate": "b8e32e2b544ce786078a077e79ccc8a5efba3262",
+              "official": "b8e32e2b544ce786078a077e79ccc8a5efba3262"
+            },
+            "unchanged_from_official": true
+          }
+        ]
+      },
+      "source_integrity": {
+        "changed_archived_files": []
+      },
+      "evidence": "/private/tmp/bifrost-upgrade/continuation/framework/verification.json",
+      "sha256": "0604e18dd4843c874d9c58ef9f43f9e62e4558caa36e4af10f587c0d0558f603"
     },
-    {
-      "path": "/private/tmp/bifrost-gate-migration/gate-test.json",
-      "sha256": "15e776f5d2a7444dd495aaf33c654cc5dd51391da73f8cd97ee12d5f4daeaf86"
+    "mcp_full_normal": {
+      "passed": 709,
+      "skipped": 29,
+      "failed": 0
     },
-    {
-      "path": "/private/tmp/bifrost-gate-migration/gate-race.json",
-      "sha256": "0f86b70d3757ac484f7524d05de8e28c5e51a87b77b3a4b3d8aeb14fb35243d3"
+    "mcp_full_race": {
+      "passed": 709,
+      "skipped": 29,
+      "failed": 0,
+      "race_reports": 0
     },
-    {
-      "path": "/private/tmp/bifrost-upgrade/logs/framework-datasheet.jsonl",
-      "sha256": "7f7d0e6fbac2c9917cbc9a925c89ab1058a00fd2c4c270d4cc33328274bf5686"
+    "mcp_skips": "27 fixed upstream cases, 2 paid-LLM exclusions; no missing-fixture skips",
+    "mcp_filtered_official_control": "Untouched official tag reproduces InitMCPServerPaths race in filtered TestToolsToExecute_* suite"
+  },
+  "consumer_validation": {
+    "conversation_full": {
+      "passed": 349,
+      "failed": 0,
+      "skipped": 0
     },
-    {
-      "path": "/private/tmp/bifrost-upgrade/logs/framework-datasheet-race.jsonl",
-      "sha256": "6bc920879aacc5cd14c0d952d70b62eb8ae6f06130cc2cea9ab941d93928279f"
+    "conversation_request_race": {
+      "passed": 62,
+      "failed": 0,
+      "skipped": 0
     },
-    {
-      "path": "/private/tmp/bifrost-upgrade/logs/core-full.jsonl",
-      "sha256": "0e936438c91be8135b005977a7979a0068ee6b9ae230cc2159c6112e24576413"
+    "production_build": "All production packages pass against the frozen local candidate after technical mirror; stripped debug output only.",
+    "sdk_technical_mirror": "All six files applied; normal/race packages each 529 pass, 0 fail, 0 skip; no source drift.",
+    "chat_real_account": "Existing public Chat E2E passes unary/stream RPC and HTTP, 3 executions, 6 verified account receipts; local fixture only.",
+    "dependency_scope": {
+      "status": "passed",
+      "other_version_increases": 19,
+      "other_additions": 3,
+      "other_removals": 1,
+      "unexplained_changes": 0,
+      "evidence": "/private/tmp/bifrost-upgrade/continuation/dependency-audit.json",
+      "sha256": "6d7b06ee94f6f6db775e6be1574d7c3a3c0489ac1a236f5b24c64b58ad500f7f"
     },
-    {
-      "path": "/private/tmp/bifrost-upgrade/logs/framework-full.jsonl",
-      "sha256": "9b0fdf44d6e0a9b0b33a87f5fac7c8005cbb2d9ee37daadef036902b19619f8f"
+    "video_native_after_technical_mirror": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "source_drift": false,
+      "evidence": "/private/tmp/bifrost-upgrade/continuation/tokenex/video-native-parity.combined.json"
     },
-    {
-      "path": "/private/tmp/bifrost-upgrade/logs/tokenex-candidate-build-shared-cache.log",
-      "sha256": "e469fa8f2adde91a84116aa24886304c3e4ee6cb1fec9560189730814e62160e"
+    "coverage": {
+      "status": "passed",
+      "test_events": 4603,
+      "owner_packages": 29,
+      "account_quota_packages": 1,
+      "failed": 0,
+      "skipped": 0,
+      "fixed_targets": 32,
+      "threshold": "unchanged effective coverage >= 98%",
+      "coverage_targets": [
+        {
+          "kind": "package",
+          "target": "tokenex/common/decimal",
+          "covered": 158,
+          "total": 161,
+          "exception_statements": 1,
+          "effective_total": 160,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/logic",
+          "covered": 486,
+          "total": 501,
+          "exception_statements": 10,
+          "effective_total": 491,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/logic/assetroute",
+          "covered": 545,
+          "total": 553,
+          "exception_statements": 0,
+          "effective_total": 553,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/logic/pricing",
+          "covered": 337,
+          "total": 351,
+          "exception_statements": 14,
+          "effective_total": 337,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/logic/execution",
+          "covered": 1536,
+          "total": 1582,
+          "exception_statements": 26,
+          "effective_total": 1556,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/logic/chat",
+          "covered": 500,
+          "total": 507,
+          "exception_statements": 0,
+          "effective_total": 507,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/logic/responses",
+          "covered": 673,
+          "total": 679,
+          "exception_statements": 0,
+          "effective_total": 679,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/logic/video",
+          "covered": 363,
+          "total": 365,
+          "exception_statements": 1,
+          "effective_total": 364,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/logic/globalconfig",
+          "covered": 74,
+          "total": 74,
+          "exception_statements": 0,
+          "effective_total": 74,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/logic/publicquota",
+          "covered": 123,
+          "total": 124,
+          "exception_statements": 0,
+          "effective_total": 124,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/logic/provider",
+          "covered": 777,
+          "total": 781,
+          "exception_statements": 0,
+          "effective_total": 781,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/llmgw/internal/svc/provider",
+          "covered": 1381,
+          "total": 1401,
+          "exception_statements": 18,
+          "effective_total": 1383,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/admin/internal/logic/llmgw",
+          "covered": 64,
+          "total": 66,
+          "exception_statements": 2,
+          "effective_total": 64,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/admin/internal/logic/llmgw/provider",
+          "covered": 205,
+          "total": 208,
+          "exception_statements": 0,
+          "effective_total": 208,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/admin/internal/logic/llmgw/billingpending",
+          "covered": 24,
+          "total": 25,
+          "exception_statements": 1,
+          "effective_total": 24,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/admin/internal/logic/llmgw/executionview",
+          "covered": 18,
+          "total": 18,
+          "exception_statements": 0,
+          "effective_total": 18,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/admin/internal/logic/llmgwassetroute",
+          "covered": 157,
+          "total": 160,
+          "exception_statements": 0,
+          "effective_total": 160,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/admin/internal/handler/llmgw",
+          "covered": 35,
+          "total": 35,
+          "exception_statements": 0,
+          "effective_total": 35,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/admin/internal/handler/llmgw/provider",
+          "covered": 104,
+          "total": 104,
+          "exception_statements": 0,
+          "effective_total": 104,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/admin/internal/handler/llmgw/billingpending",
+          "covered": 8,
+          "total": 8,
+          "exception_statements": 0,
+          "effective_total": 8,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/admin/internal/handler/llmgwassetroute",
+          "covered": 88,
+          "total": 88,
+          "exception_statements": 0,
+          "effective_total": 88,
+          "passed": true
+        },
+        {
+          "kind": "package",
+          "target": "tokenex/app/internal/logic/llmgw",
+          "covered": 144,
+          "total": 146,
+          "exception_statements": 0,
+          "effective_total": 146,
+          "passed": true
+        },
+        {
+          "kind": "file",
+          "target": "tokenex/account/internal/logic/listuserllmgwquotabalanceslogic.go",
+          "covered": 78,
+          "total": 79,
+          "exception_statements": 0,
+          "effective_total": 79,
+          "passed": true
+        },
+        {
+          "kind": "file",
+          "target": "tokenex/common/types/enttypes/llmgw_billing.go",
+          "covered": 113,
+          "total": 116,
+          "exception_statements": 3,
+          "effective_total": 113,
+          "passed": true
+        },
+        {
+          "kind": "file",
+          "target": "tokenex/common/types/enttypes/llmgw_provider.go",
+          "covered": 152,
+          "total": 153,
+          "exception_statements": 1,
+          "effective_total": 152,
+          "passed": true
+        },
+        {
+          "kind": "file",
+          "target": "tokenex/common/ent/schema/llmgw_asset_route.go",
+          "covered": 48,
+          "total": 51,
+          "exception_statements": 3,
+          "effective_total": 48,
+          "passed": true
+        },
+        {
+          "kind": "file",
+          "target": "tokenex/common/ent/schema/llmgw_asset_route_pricing.go",
+          "covered": 7,
+          "total": 7,
+          "exception_statements": 0,
+          "effective_total": 7,
+          "passed": true
+        },
+        {
+          "kind": "file",
+          "target": "tokenex/common/ent/schema/llmgw_execution.go",
+          "covered": 12,
+          "total": 12,
+          "exception_statements": 0,
+          "effective_total": 12,
+          "passed": true
+        },
+        {
+          "kind": "file",
+          "target": "tokenex/common/ent/schema/llmgw_global_config.go",
+          "covered": 12,
+          "total": 12,
+          "exception_statements": 0,
+          "effective_total": 12,
+          "passed": true
+        },
+        {
+          "kind": "file",
+          "target": "tokenex/common/ent/schema/llmgw_provider.go",
+          "covered": 7,
+          "total": 7,
+          "exception_statements": 0,
+          "effective_total": 7,
+          "passed": true
+        },
+        {
+          "kind": "file",
+          "target": "tokenex/llmgw/internal/svc/bootstrap.go",
+          "covered": 8,
+          "total": 8,
+          "exception_statements": 0,
+          "effective_total": 8,
+          "passed": true
+        },
+        {
+          "kind": "file",
+          "target": "tokenex/llmgw/internal/svc/servicecontext.go",
+          "covered": 83,
+          "total": 86,
+          "exception_statements": 3,
+          "effective_total": 83,
+          "passed": true
+        }
+      ],
+      "input_changes": [],
+      "evidence": "/private/tmp/bifrost-upgrade/continuation/tokenex/coverage-parity-summary.json"
     },
-    {
-      "path": "/private/tmp/bifrost-upgrade/logs/framework-environment-status.json",
-      "sha256": "a557cfb0561165f6f431c69f6fa3b608a0d84b233ee956ef5ff101ca363c88fe"
+    "flow_race": {
+      "status": "passed",
+      "test_events": 2087,
+      "packages": {
+        "tokenex/llmgw/internal/logic/chat": {
+          "pass": 179
+        },
+        "tokenex/llmgw/internal/logic/responses": {
+          "pass": 349
+        },
+        "tokenex/llmgw/internal/logic/pricing": {
+          "pass": 559
+        },
+        "tokenex/llmgw/internal/logic/execution": {
+          "pass": 717
+        },
+        "tokenex/llmgw/internal/logic/assetroute": {
+          "pass": 283
+        }
+      },
+      "failed": 0,
+      "skipped": 0,
+      "race_reports": 0,
+      "source_unchanged": true,
+      "evidence": "/private/tmp/bifrost-upgrade/continuation/tokenex-flow-race/gate.json"
     },
-    {
-      "path": "/private/tmp/bifrost-upgrade/mcp-fixtures-verification.json",
-      "sha256": "4cd75c20cb0bdbba630a67513f3e00baf5c279343bed0b3c594301f4b68699a1"
+    "responses_e2e": {
+      "status": "passed",
+      "test_events": 29,
+      "failed": 0,
+      "skipped": 0,
+      "settled": 9,
+      "expected_pending": 3,
+      "upstream": "local_free_fixture",
+      "input_changes": [],
+      "evidence": "/private/tmp/bifrost-upgrade/continuation/tokenex/responses-candidate-e2e.summary.json"
     }
-  ],
-  "consumer_build": {
-    "status": "failed",
-    "location": "llmgw/internal/logic/responses/request.go:159",
-    "error": "cannot use *request.Conversation (struct schemas.ResponsesResponseConversation) as string",
-    "formal_source_changed": false,
-    "formal_pins_changed": false
   },
   "release": {
+    "status": "ready_for_tag",
+    "planned_tags": [
+      "core/v1.12.0-toby.1",
+      "framework/v1.9.0-toby.1"
+    ],
     "tags_created": false,
     "pushed": false,
-    "reason": "required full gates not passed"
-  }
+    "tested_implementation_head": "84d9fb743e0dbb5c4b0c9659450d7423b55349e2",
+    "module_trees": {
+      "core": "594c7f04a5b267a9e87cf73b72d3a890f712f6da",
+      "framework": "774d62524377814c2c296067bbc10dbb93861d1f"
+    },
+    "expected_archives": [
+      {
+        "module": "github.com/toby1991/bifrost/core",
+        "version": "v1.12.0-toby.1",
+        "revision": "84d9fb743e0dbb5c4b0c9659450d7423b55349e2",
+        "archive": "/private/tmp/bifrost-upgrade/continuation/release-source/core-expected.zip",
+        "h1": "h1:2du5Pka044MGQxi5Pfs2/wV9elGf32wW0dP0HUndIM0=",
+        "zip_sha256": "4b9476ffc091dc1fe4a5eb13f37c0c251ce72a519aa7644a1fbdbf398462a73e",
+        "file_count": 1029
+      },
+      {
+        "module": "github.com/toby1991/bifrost/framework",
+        "version": "v1.9.0-toby.1",
+        "revision": "84d9fb743e0dbb5c4b0c9659450d7423b55349e2",
+        "archive": "/private/tmp/bifrost-upgrade/continuation/release-source/framework-expected.zip",
+        "h1": "h1:UB5wY2cOwfMQE6EQ6uAtDbyf61k5DP/zzg21gdBsnlQ=",
+        "zip_sha256": "d1c4860d3ebda6ac2ae4fd30703bdd8b585938ccac617c8c0ed2bd5af34b1417",
+        "file_count": 473
+      }
+    ],
+    "formal_consumer_pins_changed": false,
+    "automatic_deployment": false
+  },
+  "evidence": {
+    "mcp": "/private/tmp/bifrost-upgrade/continuation/mcp/verification.json",
+    "conversation": "/private/tmp/bifrost-upgrade/continuation/conversation/summary.json",
+    "fork_static_audit": "/private/tmp/bifrost-upgrade/continuation/final-audit/fork-static-audit.json",
+    "core_complete": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/core-full/verification.json",
+      "sha256": "d40591f3bf3b2025553c4f56bff2fbecc6f4eaf942e6813dc9a2ee5583be1226"
+    },
+    "sdk_technical_mirror": "/private/tmp/tokenex-sdk-technical-parity/final-summary.json",
+    "chat_real_account": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/chat-e2e/runs/20261014T144110Z-8a6aa034cb/summary.json",
+      "sha256": "b967abed9fec4b224ab656bf3d2caf96ac2dfa8ba9e690e1bb00d834486edbd8"
+    },
+    "framework_complete": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/framework/verification.json",
+      "sha256": "54fb3bfdf554d2a94a373828a5a10e27acfa027d16c56607825f7fb0bc8abd42"
+    },
+    "mcp_complete": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/mcp/verification.json",
+      "sha256": "6f4641f741c22a65bed042e888230e0fc9efb562ac25effb2f7e84524db2345d"
+    },
+    "consumer_coverage": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/tokenex/coverage-parity-summary.json",
+      "sha256": "edcc5759e5ff3c279ad308beb97059b707af8bfad30512d949e58abc94327181"
+    },
+    "consumer_flow_race": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/tokenex-flow-race/gate.json",
+      "sha256": "81c09d8c6379f7f0faf43384ef40549cb83880385e1e9ae7385881f6e23eea2c"
+    },
+    "responses_e2e": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/tokenex/responses-candidate-e2e.summary.json",
+      "sha256": "d7ecd2c4e6c80a706e0d815a941ec8df1353e162c3f67599314d198b8572a3cc"
+    },
+    "video_native_current": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/tokenex/video-native-parity.combined.json",
+      "sha256": "a8aa1676b1d72127490fd77570c53620b547e5ae323aefcb70e5e56d36d1938a"
+    },
+    "dependency_scope": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/dependency-audit.json",
+      "sha256": "6d7b06ee94f6f6db775e6be1574d7c3a3c0489ac1a236f5b24c64b58ad500f7f"
+    },
+    "consumer_complete": {
+      "path": "/private/tmp/bifrost-upgrade/continuation/tokenex/candidate-verification.json",
+      "sha256": "1aa62b0e3b795164a2fca7b9e1605a30ceedf0dc32162148d33ffca83a0e45da"
+    }
+  },
+  "historical_runs": [
+    {
+      "implementation_head": "e20023c58c92a121a7988ab2f41db74f59cfe604",
+      "gate": "blocked",
+      "validation": {
+        "core_legacy_race": "12 passed",
+        "gate": "40 top-level tests / 163 test events passed; normal and race",
+        "framework_datasheet": "577 test events passed; normal and race",
+        "utils_isolated_linux": "431 top-level tests / 5627 test events passed; zero skipped",
+        "perimeter": "11 gate + 21 chain + 43 shard + 3 HTTP status + 2 decision; schema normal/race passed",
+        "all_modules": "attempted; not fully passing; upstream Bedrock failure confirmed; environment fixture gaps logged separately",
+        "core_all_modules": "incomplete diagnostic run interrupted after confirmed official blocker and stalled host-network tests",
+        "framework_all_modules": "4545 passed / 61 failed / 210 skipped; missing local services",
+        "framework_plugins_retry": "17 passed / 14 failed; macOS dlopen chained-fixups error",
+        "mcp_fixtures": "six Go and two Node fixtures built; targeted five top-level and two subtests pass; targeted race fails in unchanged official mcpServerPaths initialization"
+      },
+      "logs": [
+        {
+          "path": "/private/tmp/bifrost-upgrade/upstream-bedrock-replay-control.log",
+          "sha256": "c442110f025442cdf74ba40ceb72fec5aa5a6e0a5456c1448482cbf2dda03147"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/core-utils-isolated-full.log",
+          "sha256": "821b5f2bde634471dac79564776510f9d51f2ace64a05b1619710d87075824f8"
+        },
+        {
+          "path": "/private/tmp/bifrost-gate-migration/gate-test.json",
+          "sha256": "15e776f5d2a7444dd495aaf33c654cc5dd51391da73f8cd97ee12d5f4daeaf86"
+        },
+        {
+          "path": "/private/tmp/bifrost-gate-migration/gate-race.json",
+          "sha256": "0f86b70d3757ac484f7524d05de8e28c5e51a87b77b3a4b3d8aeb14fb35243d3"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/logs/framework-datasheet.jsonl",
+          "sha256": "7f7d0e6fbac2c9917cbc9a925c89ab1058a00fd2c4c270d4cc33328274bf5686"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/logs/framework-datasheet-race.jsonl",
+          "sha256": "6bc920879aacc5cd14c0d952d70b62eb8ae6f06130cc2cea9ab941d93928279f"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/logs/core-full.jsonl",
+          "sha256": "0e936438c91be8135b005977a7979a0068ee6b9ae230cc2159c6112e24576413"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/logs/framework-full.jsonl",
+          "sha256": "9b0fdf44d6e0a9b0b33a87f5fac7c8005cbb2d9ee37daadef036902b19619f8f"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/logs/tokenex-candidate-build-shared-cache.log",
+          "sha256": "e469fa8f2adde91a84116aa24886304c3e4ee6cb1fec9560189730814e62160e"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/logs/framework-environment-status.json",
+          "sha256": "a557cfb0561165f6f431c69f6fa3b608a0d84b233ee956ef5ff101ca363c88fe"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/mcp-fixtures-verification.json",
+          "sha256": "4cd75c20cb0bdbba630a67513f3e00baf5c279343bed0b3c594301f4b68699a1"
+        }
+      ],
+      "consumer_build": {
+        "status": "failed",
+        "location": "llmgw/internal/logic/responses/request.go:159",
+        "error": "cannot use *request.Conversation (struct schemas.ResponsesResponseConversation) as string",
+        "formal_source_changed": false,
+        "formal_pins_changed": false
+      },
+      "release": {
+        "tags_created": false,
+        "pushed": false,
+        "reason": "required full gates not passed"
+      }
+    }
+  ],
+  "unresolved_migration_regressions": [],
+  "remaining_work": [
+    "Publish immutable fork tags",
+    "Verify remote archives and checksums against tested module trees",
+    "Switch formal TokenEx dependencies and proof identities",
+    "Validate formal consumption and production Docker artifacts",
+    "Commit consumer hard cut atomically; retain generated graph separately"
+  ]
 }

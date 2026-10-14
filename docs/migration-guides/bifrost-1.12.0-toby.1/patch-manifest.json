@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "target_commit": "a86d489d99536adda3dc85869bc7782d682370d1",
   "counts": {
     "core": 47,
@@ -30,7 +30,8 @@
       "candidate_blob": "2a07bbdc53a1d1484b42d0a2f7bea364a845ca17",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -50,7 +51,8 @@
         "TestDynamicProviderInitialization_DisabledAllowsExplicitUpdate"
       ],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -69,7 +71,8 @@
         "TestShutdownWaitsForLazyProviderPublication"
       ],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -84,7 +87,8 @@
       "candidate_blob": "f9a642d217318c72cfd5f21ee9cd48db92717c1f",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -99,7 +103,8 @@
       "candidate_blob": "c15ea553e7412894eab263f71399c260ca146f65",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -114,7 +119,8 @@
       "candidate_blob": "04e09a80071af686a4a8b5cc18980f970ab33511",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -129,7 +135,8 @@
       "candidate_blob": "9fd9839aefd5260cf8d32587b8b3167457f6bee1",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -144,7 +151,8 @@
       "candidate_blob": "282613b87dfd8818c3c6c053b5afbfb1667ce3f4",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -159,7 +167,8 @@
       "candidate_blob": "ff13f45ef091fc1c1b0a1affe7b436b6077f1011",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -174,7 +183,8 @@
       "candidate_blob": "79b094264cdcf31a63e491f3e0094706db99dd65",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -189,7 +199,8 @@
       "candidate_blob": "8652c69543ca04d17503359eb05d1f7fd9a6d70f",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -204,7 +215,8 @@
       "candidate_blob": "9afc64159f5a2238a0d1488d8a891606a2fdb642",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -219,7 +231,8 @@
       "candidate_blob": "15e924ba2078c6f9438adf2e1717f289aa1ad44c",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/gate"
     },
     {
       "area": "core",
@@ -236,7 +249,8 @@
         "TestNormalizeVideoCost"
       ],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/gate"
     },
     {
       "area": "core",
@@ -251,7 +265,8 @@
       "candidate_blob": "deba25fa05806185c9dd7cded660065306bd3ef0",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/gate"
     },
     {
       "area": "core",
@@ -298,7 +313,8 @@
         "TestGateProviderFailClosed"
       ],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/gate"
     },
     {
       "area": "core",
@@ -313,7 +329,8 @@
       "candidate_blob": "81f3983e5680f7224a2a8c6df8c8a8373f5d602e",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/gate"
     },
     {
       "area": "core",
@@ -337,7 +354,8 @@
         "TestGateRetrieveLinkDNSCancellation"
       ],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/gate"
     },
     {
       "area": "core",
@@ -352,7 +370,8 @@
       "candidate_blob": "e07fdf96e72d11efda2963385ad612e875ae9b42",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/gate"
     },
     {
       "area": "core",
@@ -367,7 +386,8 @@
       "candidate_blob": "f66258d7a8c067d146251a73987a0cc537631f01",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/gate"
     },
     {
       "area": "core",
@@ -382,7 +402,8 @@
       "candidate_blob": "c77c4b58393e4339260621770a0772a3cfaf47ff",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -397,7 +418,8 @@
       "candidate_blob": "486c48daf723c761dfa8d983efdb25b71cf8bd75",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -412,7 +434,8 @@
       "candidate_blob": "29ddb2f8ce596e73426073bcecdb060683ce5e65",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -427,7 +450,8 @@
       "candidate_blob": "6dd38f0ead795e3a09711ab0ba1a2e594572bea0",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -442,7 +466,8 @@
       "candidate_blob": "49535498ad7cc3bb915ac8409cd952fe0f27de85",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -457,7 +482,8 @@
       "candidate_blob": "bcff799d8d286ac9171cfdf7a22a4e83bc189a3b",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -472,7 +498,8 @@
       "candidate_blob": "84d83dd1cceb23381afa6df572d7fdd20d73b3eb",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -489,7 +516,8 @@
         "TestNewOpenAIProvider_StaleConnectionRetryConfig"
       ],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -504,7 +532,8 @@
       "candidate_blob": "0c0e4080dd13a7b3a2621e8e4e6cf80150000acc",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -519,7 +548,8 @@
       "candidate_blob": "f21b0f53dd13dfca2d6c4f1fe3255553e97dae6b",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -534,7 +564,8 @@
       "candidate_blob": "295917974aa989cd232eb980a64156529de466cd",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -549,7 +580,8 @@
       "candidate_blob": "b98b819524d0bd5b51ac680fd78a3fadd85ac95b",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -564,7 +596,8 @@
       "candidate_blob": "ccc002778648802c3f025617f654cba9a8d3085b",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -579,7 +612,8 @@
       "candidate_blob": "7f96dfe26abe444128fb5655a745596dd985c096",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -594,7 +628,8 @@
       "candidate_blob": "1486c6798a7d9a8ac5cd33b427c627a5a03155d4",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -609,7 +644,8 @@
       "candidate_blob": "ce84002c32b1a4f752052d6e7d33469f2300e319",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -624,7 +660,8 @@
       "candidate_blob": "68b7a1e22d17c63f2b69e5b29479e36d58b46eef",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -657,7 +694,8 @@
         "TestStaleConnectionRetryIfErr_WrappedErrors"
       ],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -696,7 +734,8 @@
         "TestTrimIncompleteRune"
       ],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -711,7 +750,8 @@
       "candidate_blob": "d735b7adf1276651da5efc83c83cffbbb98787f7",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -726,7 +766,8 @@
       "candidate_blob": "4d8b71878db570197927b9850dba8a74bc278071",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -741,7 +782,8 @@
       "candidate_blob": "d6c5322394f91b1e9d56cdae89866342935f00d1",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -756,7 +798,8 @@
       "candidate_blob": "f112706e6d10c9fe89dc502bd01aa1a8fdf8c914",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -771,7 +814,8 @@
       "candidate_blob": "b53e2137dc81b50d5dc95aef21db773730e354b5",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -788,7 +832,8 @@
         "TestDisabledStaleConnectionRetryDoesNotDisableCoreRetries"
       ],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -803,7 +848,8 @@
       "candidate_blob": "2807a96e886c03c1b240bf1f4be28b7e76406a3a",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "core",
@@ -818,7 +864,8 @@
       "candidate_blob": "8497a3168f60d230ef7da3492b045a50579049b8",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/core_runtime"
     },
     {
       "area": "framework",
@@ -833,7 +880,8 @@
       "candidate_blob": "9170c9ca4ce2d2e34c0699d3d0d5fa9b4c7b7699",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "official_equivalent"
+      "disposition": "official_equivalent",
+      "verification_ref": "#/verification_groups/upstream_already_included"
     },
     {
       "area": "framework",
@@ -848,7 +896,8 @@
       "candidate_blob": "5974b46d0603399ef0151d9e2cb1a4f74298edca",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/pure_pricing"
     },
     {
       "area": "framework",
@@ -873,7 +922,8 @@
         "TestCalculateChatUsageCostWithPricingPreservesInputs"
       ],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/pure_pricing"
     },
     {
       "area": "framework",
@@ -888,7 +938,8 @@
       "candidate_blob": "f60100f2734c634e5ddc794befcbab2992e0610d",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "official_equivalent"
+      "disposition": "official_equivalent",
+      "verification_ref": "#/verification_groups/upstream_already_included"
     },
     {
       "area": "framework",
@@ -929,7 +980,8 @@
         "TestChatRequestWithoutToolsOmitsAttribute"
       ],
       "review": "passed",
-      "disposition": "official_equivalent"
+      "disposition": "official_equivalent",
+      "verification_ref": "#/verification_groups/upstream_already_included"
     },
     {
       "area": "framework",
@@ -944,7 +996,8 @@
       "candidate_blob": "5a39a0e51c956f57946f5713fc0cf6f3ff8142b4",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "official_equivalent"
+      "disposition": "official_equivalent",
+      "verification_ref": "#/verification_groups/upstream_already_included"
     },
     {
       "area": "framework",
@@ -993,7 +1046,8 @@
         "TestTracer_StampsTimeToFirstTokenFromRequestReceipt"
       ],
       "review": "passed",
-      "disposition": "official_equivalent"
+      "disposition": "official_equivalent",
+      "verification_ref": "#/verification_groups/upstream_already_included"
     },
     {
       "area": "perimeter",
@@ -1008,7 +1062,8 @@
       "candidate_blob": "4cec30913c018ad041ce0e9df9b24abfca11b4ee",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/historical_documentation"
     },
     {
       "area": "perimeter",
@@ -1023,7 +1078,8 @@
       "candidate_blob": "66dfb6d9da30c1d5e332d7deb04beee6579350c0",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "unchanged"
+      "disposition": "unchanged",
+      "verification_ref": "#/verification_groups/historical_documentation"
     },
     {
       "area": "perimeter",
@@ -1038,7 +1094,8 @@
       "candidate_blob": "bf07812d5f1f679676c394284e0392561bac1ee5",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/schema_and_harness"
     },
     {
       "area": "perimeter",
@@ -1053,7 +1110,8 @@
       "candidate_blob": "c2875f081477a52325798f1920dcd71d530500b3",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/schema_and_harness"
     },
     {
       "area": "perimeter",
@@ -1068,7 +1126,8 @@
       "candidate_blob": "58f0610b033bb763e505100a2ee74a1fdc13ef50",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/schema_and_harness"
     },
     {
       "area": "perimeter",
@@ -1083,7 +1142,8 @@
       "candidate_blob": "47159b9c8d1b67ffea6e6e94618eec96cd2f17eb",
       "candidate_tests": [],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/schema_and_harness"
     },
     {
       "area": "perimeter",
@@ -1101,16 +1161,1746 @@
         "TestSchemaStaleConnectionRetry"
       ],
       "review": "passed",
-      "disposition": "adapted"
+      "disposition": "adapted",
+      "verification_ref": "#/verification_groups/schema_and_harness"
     }
   ],
-  "status": "migration_complete_publication_blocked_by_upstream_test",
-  "blocker": {
+  "status": "preservation_verified_candidate_gates_complete",
+  "known_upstream_issue": {
     "test": "TestAnthropicIngressMantleReplayUsesResponsesInputShapes",
     "path": "core/providers/bedrock/bedrock_test.go:8039",
     "official_commit": "a86d489d99536adda3dc85869bc7782d682370d1",
     "same_core_as": "2a4c51b2cc25f995bb8d20825fe7a34be902ae60",
     "result": "fails on untouched official tree and candidate; assistant historical message lacks required status",
-    "action": "No official fix, no tag publication, no formal TokenEx dependency change"
-  }
+    "action": "Record as independently reproduced official issue; do not change official logic. Publish only after all remaining required gates are completed and other failures are resolved."
+  },
+  "release_policy": "Only independently reproduced official failures are recorded as known baseline; unexplained failures, environment gaps and migration regressions block.",
+  "verification_groups": {
+    "core_runtime": {
+      "old_custom_tests": [
+        {
+          "path": "core/providerlifecycle_test.go",
+          "name": "TestProviderConstructionFailureDoesNotPublishRuntimeState",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "26d175ec943e44164d2943eb85fb21e8a22ad5e8f7714538f3b8eb6757663a8b",
+          "candidate_function_sha256": "26d175ec943e44164d2943eb85fb21e8a22ad5e8f7714538f3b8eb6757663a8b",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providerlifecycle_test.go",
+          "name": "TestShutdownRejectsProviderLifecycleChanges",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "1a20e850387fe03ef4ceccaa84f1659a81dad3bedbbdc8c8eb31cc26220b2a6d",
+          "candidate_function_sha256": "1a20e850387fe03ef4ceccaa84f1659a81dad3bedbbdc8c8eb31cc26220b2a6d",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providerlifecycle_test.go",
+          "name": "TestShutdownWaitsForLazyProviderPublication",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "990f8e999d3fd8d813cd07cae56efd5f5e3825b326aef73e25655312c8a36a8e",
+          "candidate_function_sha256": "990f8e999d3fd8d813cd07cae56efd5f5e3825b326aef73e25655312c8a36a8e",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/dynamic_provider_initialization_test.go",
+          "name": "TestDynamicProviderInitialization_DefaultBehavior",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "f11d89c404b0f5fe5124756afcad4a3cef14bb019e66ec9c938f35ec8ab4d82c",
+          "candidate_function_sha256": "f11d89c404b0f5fe5124756afcad4a3cef14bb019e66ec9c938f35ec8ab4d82c",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/dynamic_provider_initialization_test.go",
+          "name": "TestDynamicProviderInitialization_Disabled",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "fb6d7edc171c0c113bb7f8babeff76317521de4705391157810e7fc134dbbd3b",
+          "candidate_function_sha256": "fb6d7edc171c0c113bb7f8babeff76317521de4705391157810e7fc134dbbd3b",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/dynamic_provider_initialization_test.go",
+          "name": "TestDynamicProviderInitialization_DisabledKeepsStartupProviders",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "74a05d58008ef7da60c0efd93412e46a15eef4aa503a278ccb56fc23cc5efbc1",
+          "candidate_function_sha256": "74a05d58008ef7da60c0efd93412e46a15eef4aa503a278ccb56fc23cc5efbc1",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/dynamic_provider_initialization_test.go",
+          "name": "TestDynamicProviderInitialization_DisabledAllowsExplicitUpdate",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "c73c61ddefa1c6ecb5ad2501b88d70360cae7547c504d25f8fc28406682b1aad",
+          "candidate_function_sha256": "c73c61ddefa1c6ecb5ad2501b88d70360cae7547c504d25f8fc28406682b1aad",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/retry_layers_test.go",
+          "name": "TestDisabledStaleConnectionRetryDoesNotDisableCoreRetries",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "9b8f547fbe4d36c6824619e68589bf582e91e0b659142a29af99ed36c1492bcf",
+          "candidate_function_sha256": "9b8f547fbe4d36c6824619e68589bf582e91e0b659142a29af99ed36c1492bcf",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/openai/transport_config_test.go",
+          "name": "TestNewOpenAIProvider_StaleConnectionRetryConfig",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "cf2f7313f58a46c7d968740e3c6c44ea83cc03757683c786d7011441cb49b51b",
+          "candidate_function_sha256": "cf2f7313f58a46c7d968740e3c6c44ea83cc03757683c786d7011441cb49b51b",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialerWithNetworkConfig_StaleConnectionRetry",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "cf72de2795f078d8f502e65750fde298774e5285f92feb46aeec78440d4e5f70",
+          "candidate_function_sha256": "cf72de2795f078d8f502e65750fde298774e5285f92feb46aeec78440d4e5f70",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestNetworkConfig_DisableStaleConnectionRetryRoundTrip",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "b008567aa9817e7b7755309b25dd74f626da4dbee8c811c1428bcfc0d21e0ddb",
+          "candidate_function_sha256": "b008567aa9817e7b7755309b25dd74f626da4dbee8c811c1428bcfc0d21e0ddb",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestBuildStreamingClient_PreservesDisabledStaleConnectionRetry",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "a9ef17197a80a82357ecd140ef6548d57e167a4bd8b214118d171f6ab276849c",
+          "candidate_function_sha256": "a9ef17197a80a82357ecd140ef6548d57e167a4bd8b214118d171f6ab276849c",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        }
+      ],
+      "old_custom_count": 12,
+      "official_regression_tests": [
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_SetsRetryIfErr",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_SetsDial",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_ComposesWithExistingDial",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_TCPKeepAliveEnabled",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_ReturnValue",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_Idempotent",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_WithRetryOnStaleConnection",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureRetry_Deprecated",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_SSRFProtection",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_SSRFProxyBypass",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_ProxyBypassSkipsDialTimeoutCallback",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_SSRFZeroTimeout",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_SSRFMultiIPAllFail",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestConfigureDialer_DialError",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/dialer_test.go",
+          "name": "TestStaleConnectionRetryIfErr_WrappedErrors",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestBuildStreamingClient_KeepsHeaderTimeouts",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestBuildStreamingClient_BaseUnchanged",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestBuildStreamingClient_LongStreamSurvives",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestBuildStreamingHTTPClient_ZerosTimeout",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestBuildStreamingHTTPClient_Nil",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestBuildStreamingHTTPClient_LongStreamSurvives",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestBuildStreamingClient_PreservesMaxConnDuration",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestDoStreamingRequest_SilentUpstreamTimesOutAtHeaderWait",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestDoStreamingRequest_CtxCancelClosesSocketDuringHeaderWait",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestBuildLargeResponseClient_SilentUpstreamTimesOutAtHeaderWait",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestBuildLargeResponseClient_HeaderDeadlineDoesNotCapBody",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestFinalizeResponseWithLargeDetection_StallDuringPrefetchReturnsError",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestFinalizeResponseWithLargeDetection_StallAfterPrefetchUnblocksReader",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestFinalizeResponseWithLargeDetection_GzipClassifiedByDecompressedSize",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestContextTransport_FreshDialCloseBeforeHeadersNotRetried",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestContextTransport_PooledStaleConnStillRetried",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestContextTransport_PooledConnTruncatedBodyNotRetried",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestDoStreamingRequest_FirstTokenDeadlineClosesSocketDuringHeaderWait",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestDoHTTPRequest_FirstTokenDeadlineEndsHeaderWait",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestDoHTTPRequest_DisarmedDeadlineKeepsBody",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestFinalizeResponseWithLargeDetection_PreviewEndsOnRuneBoundary",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streamingclient_test.go",
+          "name": "TestTrimIncompleteRune",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestMakeRequestWithContext_SuccessReturnsNoopWait",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestMakeRequestWithContext_DeadlineExceededReturnsTimeoutError",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestMakeRequestWithContext_ContextCancelReturnsCancelledError",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestMakeRequestWithContext_WaitPreventsDataRace",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestMakeRequestWithContext_WaitIsIdempotent",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestMakeRequestWithContext_SuccessWaitDoesNotBlock",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestMakeRequestWithContext_ConcurrentRequestsWithCancellation",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestNewBifrostTimeoutError",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestMakeRequestWithContext_ClientError",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestNewBifrostUpstreamConnectionError",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestMakeRequestWithContext_DeferOrderingPattern",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestMakeRequestWithContext_CancelClosesSocket",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestContextTransport_ChunkedStreamReleasesConnForReuse",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestContextTransport_TruncatedChunkedStreamReadsAsEOFAndDiscardsConn",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestContextTransport_TruncatedContentLengthStreamReportsUnexpectedEOFAndDiscardsConn",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestStreamBodyReader_ContentLengthBoundaries",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestContextTransport_ContentLengthAndIdentityBodies",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestContextTransport_HeadAnd204SkipBody",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestContextTransport_InterimResponsesSkipped",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestContextTransport_CloseWithErrorInterruptsBlockedRead",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestContextTransport_MatchesDefaultForBufferedBodies",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/makerequest_test.go",
+          "name": "TestContextTransport_BufferedLateCancelDoesNotPoisonPool",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streampoison_test.go",
+          "name": "TestStreamingPoolSurvivesCancelledStreams",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streampoison_test.go",
+          "name": "TestStreamingConnsCountDoesNotDrift",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streampoison_test.go",
+          "name": "TestStreamCancellationNoDataRace",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streampoison_test.go",
+          "name": "TestStreamCloseUnderActiveReaderIsSafe",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/streampoison_test.go",
+          "name": "TestReleaseAfterBodyEOFDoesNotBlock",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckStreamPreambleNilClassifierCancellation",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckStreamPreambleDeadlineAllowsFallbacks",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckStreamPreambleCancellation",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckStreamPreambleForError",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_ErrorInFirstChunk",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_ValidFirstChunk",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_NilStream",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_EmptyStream",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_ErrorInSecondChunk",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_ErrorDrainsSource",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_ErrorWithEmptyMessage",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_CtxCancelUnblocksWrapper",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestAttachBilledUsageFromContext_KeepsUsageWithOnlyDetails",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestAttachBilledUsageFromContext_CopiesUsage",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestAttachBilledUsageFromContext_NoOpWhenEmpty",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_CodeOnlyError",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_CtxCancelUnblocksPeek",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_DeadlineAllowsFallbacks",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_BufferedChunkWinsOverCancelledCtx",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestAttemptAbort_NilIsInert",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestAttemptAbort_Expire",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestAttemptAbort_FireAndDisarmHaveOneWinner",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckStreamPreamble_FirstTokenDeadlineCutsOffStartupOnlyStream",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckStreamPreamble_ByteOverflowKeepsFirstTokenDeadline",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckStreamPreamble_FullBufferUnderDeadlineIsAnEarlyMiss",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckStreamPreamble_ByteOverflowCommitsWithoutDeadline",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckStreamPreamble_ContentBeforeDeadlineCommits",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_ChunkAfterFiredDeadlineIsAMiss",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_EmptyCloseAfterFiredDeadlineIsAMiss",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckStreamPreamble_CloseAfterFiredDeadlineIsAMiss",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_FirstTokenDeadlineCutsOffSilentStream",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestCheckFirstStreamChunk_FirstChunkBeforeDeadlineDisarms",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestStreamStartupStateAgreesWithStartupChecks",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        },
+        {
+          "path": "core/providers/utils/stream_test.go",
+          "name": "TestStreamStartupStateIgnoresSkippedChunks",
+          "origin": "official a86d489d99536adda3dc85869bc7782d682370d1",
+          "present_in_candidate": true
+        }
+      ],
+      "official_regression_count": 98,
+      "additional_adaptation_files": [
+        "core/providers/cloudflare/cloudflare.go",
+        "core/providers/databricks/databricks.go",
+        "core/providers/githubcopilot/githubcopilot.go",
+        "core/providers/typesafe/typesafe.go"
+      ],
+      "evidence": [
+        {
+          "path": "/private/tmp/bifrost-upgrade/core-port-evidence.json",
+          "exists": true,
+          "sha256": "7a554454d7a43ce68d657ca1334db7b9f5785833e8c8b3e78f87c93ba9e26998",
+          "scope": "12 custom tests and static wiring ledger",
+          "kind": "scope_ledger",
+          "dynamic_acceptance": "not_redecided_by_static_audit"
+        },
+        {
+          "path": "/tmp/bifrost-core-legacy-race.log",
+          "exists": true,
+          "sha256": "6b775033e318564d0c629b8c97de279fe8c225562d8c435bb29bb9c89179a92e",
+          "scope": "three package-level lines for focused original 12 test invocation only",
+          "kind": "historical_run_log",
+          "dynamic_acceptance": "not_redecided_by_static_audit"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/core-utils-isolated-full.log",
+          "exists": true,
+          "sha256": "821b5f2bde634471dac79564776510f9d51f2ace64a05b1619710d87075824f8",
+          "scope": "complete utils package in isolated Linux; see core-port-evidence for counts",
+          "kind": "historical_run_log",
+          "dynamic_acceptance": "not_redecided_by_static_audit"
+        }
+      ],
+      "dynamic_status": "All 12 legacy custom tests pass in complete normal and race coverage; 51 Core packages covered; known upstream and environment outcomes are classified in validation-summary.json.",
+      "final_evidence": "/private/tmp/bifrost-upgrade/continuation/core-full/verification.json"
+    },
+    "gate": {
+      "old_custom_tests": [
+        {
+          "path": "core/providers/gate/billing_test.go",
+          "name": "TestNormalizeVideoCost",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "151e7a3de5aaf8cc61a20167c1ed9ea98ea0e208c06592903d019226ee96689e",
+          "candidate_function_sha256": "151e7a3de5aaf8cc61a20167c1ed9ea98ea0e208c06592903d019226ee96689e",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoGenerationRequestMapping",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "856678664040f0d0dd354dc278870a811668b28808b85a7f55f0d5d1bc08e5dd",
+          "candidate_function_sha256": "856678664040f0d0dd354dc278870a811668b28808b85a7f55f0d5d1bc08e5dd",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestMapGateStatus",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "0cd0e68c0c80d8855aa0b5da57345b9f6558c7192fe470014a5afc126c50d94c",
+          "candidate_function_sha256": "0cd0e68c0c80d8855aa0b5da57345b9f6558c7192fe470014a5afc126c50d94c",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoGenerationSubmit",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "165c4ee135ee6d7911b527bc481cfad83a9ef6c2e4747d6c1439bc2fb530162f",
+          "candidate_function_sha256": "165c4ee135ee6d7911b527bc481cfad83a9ef6c2e4747d6c1439bc2fb530162f",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoGenerationSubmitOnlyAccepts202",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "2637500af0958ddc89fca07e4c4b2bfca97c6614088d11f667688421f2bd25dd",
+          "candidate_function_sha256": "2637500af0958ddc89fca07e4c4b2bfca97c6614088d11f667688421f2bd25dd",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoGenerationSubmitWithoutIdempotencyKey",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "79e846c14694669f4da2343f392bba4415eb6df76726ffc3ede429288163786a",
+          "candidate_function_sha256": "79e846c14694669f4da2343f392bba4415eb6df76726ffc3ede429288163786a",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoGenerationSubmitRejected",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "fb38bc8eeb640f451d801c4f096dce4ec0fe56e95ca9febb47bda704976e0895",
+          "candidate_function_sha256": "fb38bc8eeb640f451d801c4f096dce4ec0fe56e95ca9febb47bda704976e0895",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoGenerationEnvelopeCodeRejected",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "7642829f6eb9fa6eb123f6edba54cee1a10ec155251a58e68bbb03dc89ed0657",
+          "candidate_function_sha256": "7642829f6eb9fa6eb123f6edba54cee1a10ec155251a58e68bbb03dc89ed0657",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoGenerationUnknownStatus",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "a5efb131e6c6c0c0fffc2ca254e5a1231b0c9491bddecfc649b94fe6990c2ca8",
+          "candidate_function_sha256": "a5efb131e6c6c0c0fffc2ca254e5a1231b0c9491bddecfc649b94fe6990c2ca8",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoRetrieveMapping",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "9bcc136c0b951840052e389a7fc5699493e997438480985712f85db984c567ac",
+          "candidate_function_sha256": "9bcc136c0b951840052e389a7fc5699493e997438480985712f85db984c567ac",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoRetrieveSettledCostMatrix",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "08f0a86717ca692fd5ba66f93c7bef7da881c6675c7519581cfa94d0d4948f40",
+          "candidate_function_sha256": "08f0a86717ca692fd5ba66f93c7bef7da881c6675c7519581cfa94d0d4948f40",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoRetrieveDirectURLFailureKeepsResult",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "41f45d87cf1832b6a2d721334af5e403515c53968560e4c925b1a20599f417f9",
+          "candidate_function_sha256": "41f45d87cf1832b6a2d721334af5e403515c53968560e4c925b1a20599f417f9",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateOperationGating",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "ced14b13a8154964029a369142fc6d0f796da206d76c1c5d1c0d4feee8f287e2",
+          "candidate_function_sha256": "ced14b13a8154964029a369142fc6d0f796da206d76c1c5d1c0d4feee8f287e2",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoRetrieveNonTerminalStripsTerminalFields",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "26d7c560e6b166711194ecb54364de25991f69fac593188b8cafd8042b0808c4",
+          "candidate_function_sha256": "26d7c560e6b166711194ecb54364de25991f69fac593188b8cafd8042b0808c4",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoRetrieveRejectsWrongJobID",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "f313572226bd61ef64e2f11d304b95524c5e25e54c0f33a3711d457745eb247a",
+          "candidate_function_sha256": "f313572226bd61ef64e2f11d304b95524c5e25e54c0f33a3711d457745eb247a",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoRetrieveClearsStaleSettledCost",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "d709e5f36f99b5fe44b6b2df64343686f25708cba3cfd76a91c7886b1b007408",
+          "candidate_function_sha256": "d709e5f36f99b5fe44b6b2df64343686f25708cba3cfd76a91c7886b1b007408",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoRetrieveRawResponse",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "b9133ff24639b787c960c3f24a67e61fa8019753f21f19c1a98d9f4f7d13f508",
+          "candidate_function_sha256": "b9133ff24639b787c960c3f24a67e61fa8019753f21f19c1a98d9f4f7d13f508",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoRetrieveUnknownStatus",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "658ffbab427fd953d65e5161984fdd918fc7444e19489df5d8c7c3d6305cdb3c",
+          "candidate_function_sha256": "658ffbab427fd953d65e5161984fdd918fc7444e19489df5d8c7c3d6305cdb3c",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoRetrieveNotFound",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "323fce20be03774a16d5c8f970663229476c457ce633b0153885b7123056c7c0",
+          "candidate_function_sha256": "323fce20be03774a16d5c8f970663229476c457ce633b0153885b7123056c7c0",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoRetrieveUnauthorized",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "75ef2b749c069831582286928e20ad4b5f91abb66bffa04338def99b4b63ddfa",
+          "candidate_function_sha256": "75ef2b749c069831582286928e20ad4b5f91abb66bffa04338def99b4b63ddfa",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoDownloadTwoHopStreamed",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "dc74927ccbfa2f2735198479e49e44e10ca1b1344bc47385bdbbd3054f78b31c",
+          "candidate_function_sha256": "dc74927ccbfa2f2735198479e49e44e10ca1b1344bc47385bdbbd3054f78b31c",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoDownloadLargeStreamOutlivesRequestTimeout",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "e8961c9415b6c72c9efe5e99bd5db7f134e77db3aec1d2ae07e0c8bd2bc4f9ed",
+          "candidate_function_sha256": "e8961c9415b6c72c9efe5e99bd5db7f134e77db3aec1d2ae07e0c8bd2bc4f9ed",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoDownloadBuffered",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "045156a9db797c96d578383346405838b4443d95a566139b7af06e56abf019ce",
+          "candidate_function_sha256": "045156a9db797c96d578383346405838b4443d95a566139b7af06e56abf019ce",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoDownloadLargeResponsePaths",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "79e2b8f7723a647457236d4b92a4c87c7de17fbaf8d68d701e52c105d701830b",
+          "candidate_function_sha256": "79e2b8f7723a647457236d4b92a4c87c7de17fbaf8d68d701e52c105d701830b",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoDownloadStatusMapping",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "83c35654f038d06ad90b4c78ec183dc6a80c91a023fea67ca5c02577e2f075d9",
+          "candidate_function_sha256": "83c35654f038d06ad90b4c78ec183dc6a80c91a023fea67ca5c02577e2f075d9",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoDownloadRejectsNon302",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "4196e7919b6cdb97399102329bf0c0958a2a7b397c6193d79b9b65c5ee87c02c",
+          "candidate_function_sha256": "4196e7919b6cdb97399102329bf0c0958a2a7b397c6193d79b9b65c5ee87c02c",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoDownloadRejectsInsecureLocation",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "ce0878e855af977f835271ecd6ef255339784e5018c228cadc5f8d8af3d64dd7",
+          "candidate_function_sha256": "ce0878e855af977f835271ecd6ef255339784e5018c228cadc5f8d8af3d64dd7",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoDownloadSSRFRejected",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "78433cddae0c61d76b05769ec59cca3ccf0d17b16a6f02597b4a0b7721466cee",
+          "candidate_function_sha256": "78433cddae0c61d76b05769ec59cca3ccf0d17b16a6f02597b4a0b7721466cee",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoDownloadHop2ErrorBoundedWithoutThreshold",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "8d571c1cced207ad4c8b7d82cc2549a134ac8c122d94413bd71465a01cb0de97",
+          "candidate_function_sha256": "8d571c1cced207ad4c8b7d82cc2549a134ac8c122d94413bd71465a01cb0de97",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateVideoDownloadHop2CancellationAndDeadline",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "4aa738ec184323dfea313c15c89cbbdb628bd0c83ca15d095b724b8824873e2a",
+          "candidate_function_sha256": "4aa738ec184323dfea313c15c89cbbdb628bd0c83ca15d095b724b8824873e2a",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestValidateDownloadLocation",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "0cd57e1d50c02d236aae7c8d0a5ab687e61abe210c0cb38ae43a07fa7e9d817b",
+          "candidate_function_sha256": "0cd57e1d50c02d236aae7c8d0a5ab687e61abe210c0cb38ae43a07fa7e9d817b",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/gate_test.go",
+          "name": "TestGateProviderFailClosed",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "0a8b1b224148d5da1a87de849b3ec90e0e901be7fa7539244f13898466a82115",
+          "candidate_function_sha256": "bc28fdf8c552dcfca15bac74a61e5078f5e192a02f4772c055a634565b81fad5",
+          "function_byte_identical": false,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/retrievelink_test.go",
+          "name": "TestGateRetrieveLinkExtraHeaders",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "ca7243914fd5dca4a5ed42bbed71a79ecfc2b744466175a89a514d71db5e13ac",
+          "candidate_function_sha256": "ca7243914fd5dca4a5ed42bbed71a79ecfc2b744466175a89a514d71db5e13ac",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/retrievelink_test.go",
+          "name": "TestGateRetrieveLinkDelayedBodyKeepsPoolClean",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "546fa3f45f699ba1c60387baa526e105a60603d2064523b37861703ed2303e70",
+          "candidate_function_sha256": "546fa3f45f699ba1c60387baa526e105a60603d2064523b37861703ed2303e70",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/retrievelink_test.go",
+          "name": "TestGateRetrieveLinkSlowHeadersKeepsSettledBilling",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "f11455a6aea16c5486d161b92c1a36acca1dd04e79dbfd58f8caa3fddce75ada",
+          "candidate_function_sha256": "f11455a6aea16c5486d161b92c1a36acca1dd04e79dbfd58f8caa3fddce75ada",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/retrievelink_test.go",
+          "name": "TestGateRetrieveLinkSkippedWhenDeadlineExhausted",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "a694f6096831558da75e47e1f675aacdbfd6c9471b026e355200f0dd04cbb334",
+          "candidate_function_sha256": "a694f6096831558da75e47e1f675aacdbfd6c9471b026e355200f0dd04cbb334",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/retrievelink_test.go",
+          "name": "TestGateVideoGenerationPreDispatchErrorShape",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "b8eb163db5b23d55bddb51feb672e14e30dcda948cf6f6a9950fbca4eb604baa",
+          "candidate_function_sha256": "b8eb163db5b23d55bddb51feb672e14e30dcda948cf6f6a9950fbca4eb604baa",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/retrievelink_test.go",
+          "name": "TestGateRetrieveLinkNeverFollowsRedirect",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "ae61dc1243561b57921a2fade996ba8a424e10561a2649e03be2b2c242acd438",
+          "candidate_function_sha256": "ae61dc1243561b57921a2fade996ba8a424e10561a2649e03be2b2c242acd438",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/retrievelink_test.go",
+          "name": "TestGateRetrieveLinkHandshakeCancellation",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "e82e09b963c28d7b189f5e994ae08a86d3158dde3c79517154dfc4649bb15393",
+          "candidate_function_sha256": "e82e09b963c28d7b189f5e994ae08a86d3158dde3c79517154dfc4649bb15393",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "core/providers/gate/retrievelink_test.go",
+          "name": "TestGateRetrieveLinkDNSCancellation",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "689f34d4bee885c2ff3198a9c9a5f169608bf3d8bd3816110da4dafb47216cb9",
+          "candidate_function_sha256": "689f34d4bee885c2ff3198a9c9a5f169608bf3d8bd3816110da4dafb47216cb9",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        }
+      ],
+      "old_custom_count": 40,
+      "old_test_names_missing": [],
+      "candidate_only_new_top_level_tests": [],
+      "source_adaptations": [
+        "TestGateProviderFailClosed adds unsupported ModelRetrieve and Decision assertions; no old assertion removed"
+      ],
+      "evidence": [
+        {
+          "path": "/private/tmp/bifrost-gate-migration/gate-test.json",
+          "exists": true,
+          "sha256": "15e776f5d2a7444dd495aaf33c654cc5dd51391da73f8cd97ee12d5f4daeaf86",
+          "scope": "Gate package normal: exact 40 top-level tests and subtests",
+          "kind": "historical_run_log",
+          "dynamic_acceptance": "not_redecided_by_static_audit"
+        },
+        {
+          "path": "/private/tmp/bifrost-gate-migration/gate-race.json",
+          "exists": true,
+          "sha256": "0f86b70d3757ac484f7524d05de8e28c5e51a87b77b3a4b3d8aeb14fb35243d3",
+          "scope": "Gate package race: exact 40 top-level tests and subtests",
+          "kind": "historical_run_log",
+          "dynamic_acceptance": "not_redecided_by_static_audit"
+        },
+        {
+          "path": "/private/tmp/bifrost-gate-migration/validation-summary.json",
+          "exists": true,
+          "sha256": "287af447ddede7884ddb3c15ab48c64989ad9033bc710f20dcb80ee20f1fb3d4",
+          "scope": "Gate normal/race counts",
+          "kind": "scope_ledger",
+          "dynamic_acceptance": "not_redecided_by_static_audit"
+        }
+      ],
+      "dynamic_status": "All 40 legacy Gate tests pass in ordinary and race; full Core coverage complete."
+    },
+    "pure_pricing": {
+      "old_custom_tests": [
+        {
+          "path": "framework/modelcatalog/datasheet/pricingapi_test.go",
+          "name": "TestNormalizeRequestTypePublicAPI",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "c435b573d4fdf6c56848d6453ec1708dc806452e7e30fb72c07ad66a6bd45710",
+          "candidate_function_sha256": "2808e9b43308e9ad93ea845c390d1fee6f36a7880ef68095c93e519b239551dc",
+          "function_byte_identical": false,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "framework/modelcatalog/datasheet/pricingapi_test.go",
+          "name": "TestChatPricingSpecFixture",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "1aa716f838b317729c008614a15ac4090d499d320a5530e2361922e7182f39ea",
+          "candidate_function_sha256": "1aa716f838b317729c008614a15ac4090d499d320a5530e2361922e7182f39ea",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "framework/modelcatalog/datasheet/pricingapi_test.go",
+          "name": "TestCalculateChatUsageCostWithPricingRequestTypes",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "880408df86f585fbf415dd0529f3c1ca6cbef2b56b221ca267e987548acef723",
+          "candidate_function_sha256": "12bfdaa451f3ab5b0cb39a1ec00eb43dae81f58836241b281154f16a323733d5",
+          "function_byte_identical": false,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "framework/modelcatalog/datasheet/pricingapi_test.go",
+          "name": "TestCalculateChatUsageCostWithPricingFixture",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "2691b4d9d5562ad6787a7aec0190d063e30bf34950a62f70293ce095997b7f52",
+          "candidate_function_sha256": "2691b4d9d5562ad6787a7aec0190d063e30bf34950a62f70293ce095997b7f52",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "framework/modelcatalog/datasheet/pricingapi_test.go",
+          "name": "TestCalculateChatUsageCostWithPricingServedTier",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "32c5e82aec46f416e13996865d28f7b7fc4f7aa921c2cd1e838623fdc688a0f3",
+          "candidate_function_sha256": "32c5e82aec46f416e13996865d28f7b7fc4f7aa921c2cd1e838623fdc688a0f3",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "framework/modelcatalog/datasheet/pricingapi_test.go",
+          "name": "TestCalculateChatUsageCostWithPricingUltrafastAndRequestFee",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "e7d7a3a0b2916e9d42ee722c3ab0907b9e691aeb47fa5568476e961a0b1edbd1",
+          "candidate_function_sha256": "e7d7a3a0b2916e9d42ee722c3ab0907b9e691aeb47fa5568476e961a0b1edbd1",
+          "function_byte_identical": true,
+          "original_lines_preserved_in_order": true
+        },
+        {
+          "path": "framework/modelcatalog/datasheet/pricingapi_test.go",
+          "name": "TestCalculateChatUsageCostWithPricingRejectsInvalidInput",
+          "present_in_source": true,
+          "present_in_candidate": true,
+          "source_function_sha256": "591417a83476f9b84b13726620ed9cb8821ec0233cbf1443dc70037ed581c8d7",
+          "candidate_function_sha256": "a15c624dae21578ffb9728ac4a665a2c9f7e8004b9c69fc81c187697779a50e5",
+          "function_byte_identical": false,
+          "original_lines_preserved_in_order": true
+        }
+      ],
+      "old_custom_count": 7,
+      "candidate_added_tests": [
+        {
+          "path": "framework/modelcatalog/datasheet/pricingapi_test.go",
+          "name": "TestCalculateChatUsageCostWithPricingLegacySearchCompatibility",
+          "present_in_candidate": true
+        },
+        {
+          "path": "framework/modelcatalog/datasheet/pricingapi_test.go",
+          "name": "TestCalculateChatUsageCostWithPricingPreservesInputs",
+          "present_in_candidate": true
+        }
+      ],
+      "candidate_added_count": 2,
+      "source_adaptations": [
+        "Original normalization and request-type tests add Decision/Live cases",
+        "Original invalid-input test adds unsupported new native fields",
+        "No original assertion removed"
+      ],
+      "evidence": [
+        {
+          "path": "/private/tmp/bifrost-upgrade/logs/framework-datasheet.jsonl",
+          "exists": true,
+          "sha256": "7f7d0e6fbac2c9917cbc9a925c89ab1058a00fd2c4c270d4cc33328274bf5686",
+          "scope": "full datasheet normal, contains old 7 and new 2 custom tests",
+          "kind": "historical_run_log",
+          "dynamic_acceptance": "not_redecided_by_static_audit"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/logs/framework-datasheet-race.jsonl",
+          "exists": true,
+          "sha256": "6bc920879aacc5cd14c0d952d70b62eb8ae6f06130cc2cea9ab941d93928279f",
+          "scope": "full datasheet race, contains old 7 and new 2 custom tests",
+          "kind": "historical_run_log",
+          "dynamic_acceptance": "not_redecided_by_static_audit"
+        },
+        {
+          "path": "/private/tmp/bifrost-upgrade/logs/framework-pricingapi-port.md",
+          "exists": true,
+          "sha256": "8e2870a8fc2816d7a27ad104efbfdea14935e26851b160f242913f84cef111dc",
+          "scope": "port rationale and original failing expectation",
+          "kind": "scope_ledger",
+          "dynamic_acceptance": "not_redecided_by_static_audit"
+        }
+      ],
+      "dynamic_status": "All seven legacy and two added tests pass in ordinary and race, including both complete Framework runs.",
+      "final_evidence": "/private/tmp/bifrost-upgrade/continuation/framework/verification.json"
+    },
+    "upstream_already_included": {
+      "files": [
+        {
+          "path": "framework/changelog.md",
+          "candidate_equals_official": true,
+          "official_blob": "9170c9ca4ce2d2e34c0699d3d0d5fa9b4c7b7699"
+        },
+        {
+          "path": "framework/tracing/llmspan.go",
+          "candidate_equals_official": true,
+          "official_blob": "f60100f2734c634e5ddc794befcbab2992e0610d"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "candidate_equals_official": true,
+          "official_blob": "e494b80a3a8c73b9660485088680964410ab8868"
+        },
+        {
+          "path": "framework/tracing/tracer.go",
+          "candidate_equals_official": true,
+          "official_blob": "5a39a0e51c956f57946f5713fc0cf6f3ff8142b4"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "candidate_equals_official": true,
+          "official_blob": "353f6058b3d3b4eb052b41441d934f4427bbe66e"
+        }
+      ],
+      "verification_kind": "static official equivalence; not an assertion all official tracing tests passed",
+      "related_official_tests": [
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateResponsesResponseAttributesSerializesMetadataAsJSON"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateTextCompletionRequestAttributesSerializesLogitBiasAsJSON"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateBatchCreateRequestAttributesSerializesMetadataAsJSON"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateRequestExtraParamsSerializesStructuredValues"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateErrorAttributesEmitsBilledUsage"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateErrorAttributesUsesResponsesNamespace"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateErrorAttributesWithoutBilledUsageEmitsNoTokens"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateErrorAttributesEmitsCacheWriteDetailsWithoutAggregate"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestErrorAttributesOverrideAccumulatedResponseTokens"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateResponsesResponseAttributesEmitsFinishReasons"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateResponsesResponseAttributesOmitsFinishReasonsWhenStopReasonNil"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestSpanDataAttributesMatchLegacy"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestSpanDataCarriesAttachments"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestRawPayloadsOnlyBuiltUnderDemand"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestRawPayloadsOverCapAreDropped"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestRawPayloadsAreContentAttributes"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestResponsesSummariesCarryCustomToolCallInput"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestResponsesSummariesCarryShellAndInterpreterInput"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestResponsesSummariesTagItemsWithoutInput"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestSpanAttributesCarryCustomToolCallInput"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateErrorAttributes_StatusOnlyError"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestPopulateErrorAttributes_NilError"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestRawPayloadsCapturedOnFailedRequest"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestChatRequestExportsTools"
+        },
+        {
+          "path": "framework/tracing/llmspan_test.go",
+          "name": "TestChatRequestWithoutToolsOmitsAttribute"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_CompleteAndFlushTraceInjectsObservabilityPlugins"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_TransformPausedStreamBufferForwardsToAccumulator"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_CompleteAndFlushTraceRedactsContentBeforeInject"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_SetTraceRedactionReplacementsSurvivesLaterObservabilityPlugins"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_StartSpan_RootSpanWithW3CParent"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_StartSpan_RootSpanWithoutW3CParent"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_StartSpan_ChildSpanLinking"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_StartSpan_NoTraceID"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_EndTrace_ReturnsTraceData"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_SetAttribute"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_PopulateLLMResponseAttributesDropsZeroAggregatesWhenBilled"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_PopulateLLMResponseAttributesRecordsComplexityScore"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_GetSpanHandleByID_RootSpan"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_GetSpanHandleByID_ExplicitSpan"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_GetSpanHandleByID_MissingInputs"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_AddEvent"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestIntegration_FullDistributedTraceFlow"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_PopulateLLMResponseAttributesStampsErrorType"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestPluginSpanDemandGate"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestPluginSpanDemandUnknownCreatesSpans"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestPluginSpanDemandRecomputedOnReload"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_PopulateLLMResponseAttributesEmitsResponsesFinishReason"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_PopulateLLMResponseAttributesEmitsResponsesFinishReasonForResponsesRequest"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestDemandUnknownBeforeRegistrationIsFull"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestRawPayloadDemandRecomputedOnReload"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestPopulateLLMResponseAttributes_ErrorPathHonorsIgnoreProviderCost"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestProcessStreamingChunk_HonorsIgnoreProviderCost"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestProcessStreamingChunk_PricesWithRequestUserScope"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestProcessStreamingChunk_PricesAtRequestStartTime"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_SetTraceRequestHeadersRedactsVirtualKey"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_PopulateLLMResponseAttributesPropagatesErrorToRootSpan"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_PopulateLLMResponseAttributesLeavesRootSpanCleanOnSuccess"
+        },
+        {
+          "path": "framework/tracing/tracer_test.go",
+          "name": "TestTracer_StampsTimeToFirstTokenFromRequestReceipt"
+        }
+      ],
+      "dynamic_status": "Official blobs unchanged; full Framework tracing ordinary and race pass with the one documented official fixed race skip.",
+      "final_evidence": "/private/tmp/bifrost-upgrade/continuation/framework/verification.json"
+    },
+    "schema_and_harness": {
+      "related_tests": [
+        {
+          "path": "transports/schema_test/config_schema_test.go",
+          "name": "TestSchemaGateProvider"
+        },
+        {
+          "path": "transports/schema_test/config_schema_test.go",
+          "name": "TestSchemaStaleConnectionRetry"
+        }
+      ],
+      "node_test_files": [
+        "tests/e2e/api/runners/lib/gate-video-contract.test.mjs",
+        "tests/e2e/api/runners/lib/chained-vars.test.mjs",
+        "tests/e2e/api/runners/lib/shard-split.test.mjs",
+        "tests/e2e/api/runners/lib/http-status-policy.test.mjs",
+        "tests/e2e/api/runners/lib/decision-content-shape.test.mjs"
+      ],
+      "evidence": [
+        {
+          "path": "/private/tmp/bifrost-upgrade/perimeter-verification.json",
+          "exists": true,
+          "sha256": "7773ce2a9dde5e62d8d6c02ec5efc4253cd2e0e6bdd94f5717b3d61bd39ee260",
+          "scope": "schema, original Gate 11, harness/chain/shard checks",
+          "kind": "scope_ledger",
+          "dynamic_acceptance": "not_redecided_by_static_audit"
+        }
+      ],
+      "dynamic_status": "Schema ordinary/race, all 11 Gate harness tests and supporting chain/shard/status/decision checks pass; both historical Gate groups preserved."
+    },
+    "historical_documentation": {
+      "files": [
+        {
+          "path": "docs/migration-guides/core-1.8.4-toby.2.md",
+          "candidate_equals_old_source": true
+        },
+        {
+          "path": "docs/migration-guides/v2.0.0-toby.1.md",
+          "candidate_equals_old_source": true
+        }
+      ],
+      "verification_kind": "static byte equivalence; no runtime test applies"
+    }
+  },
+  "additional_official_adaptations": [
+    {
+      "provider_directory": "cloudflare",
+      "path": "core/providers/cloudflare/cloudflare.go",
+      "line": 51,
+      "statement": "client = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)",
+      "legacy_constructor": false,
+      "new_official_constructor": true,
+      "gate_constructor": false,
+      "verification": "static_wiring_verified; shared-helper regression coverage, not a per-provider live result",
+      "official_blob": "4fa2716d8d6bc1f8f3d8f2a6dd2e7913037bf353",
+      "candidate_blob": "dbb7a627688c449baed75bf2d5de82787273ab37",
+      "diff": "diff --git a/core/providers/cloudflare/cloudflare.go b/core/providers/cloudflare/cloudflare.go\nindex 4fa2716d8..dbb7a6276 100644\n--- a/core/providers/cloudflare/cloudflare.go\n+++ b/core/providers/cloudflare/cloudflare.go\n@@ -48,7 +48,7 @@ func NewCloudflareProvider(config *schemas.ProviderConfig, logger schemas.Logger\n \n \t// Configure proxy and retry policy\n \tclient = providerUtils.ConfigureProxy(client, config.ProxyConfig, logger)\n-\tclient = providerUtils.ConfigureDialer(client, config.NetworkConfig.AllowPrivateNetwork)\n+\tclient = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)\n \tclient = providerUtils.ConfigureTLS(client, config.NetworkConfig, logger)\n \tstreamingClient := providerUtils.BuildStreamingClient(client)\n \t// Set default BaseURL if not provided\n",
+      "changed_lines": [
+        "-\tclient = providerUtils.ConfigureDialer(client, config.NetworkConfig.AllowPrivateNetwork)",
+        "+\tclient = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)"
+      ],
+      "exact_one_line_replacement": true,
+      "group_verification_ref": "#/verification_groups/core_runtime"
+    },
+    {
+      "provider_directory": "databricks",
+      "path": "core/providers/databricks/databricks.go",
+      "line": 100,
+      "statement": "client = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)",
+      "legacy_constructor": false,
+      "new_official_constructor": true,
+      "gate_constructor": false,
+      "verification": "static_wiring_verified; shared-helper regression coverage, not a per-provider live result",
+      "official_blob": "46a184f4dc0894efabe495697bd54bd14e804841",
+      "candidate_blob": "c6cf36c25e8d37a5b59ed6a8192018ca36e77923",
+      "diff": "diff --git a/core/providers/databricks/databricks.go b/core/providers/databricks/databricks.go\nindex 46a184f4d..c6cf36c25 100644\n--- a/core/providers/databricks/databricks.go\n+++ b/core/providers/databricks/databricks.go\n@@ -97,7 +97,7 @@ func NewDatabricksProvider(config *schemas.ProviderConfig, logger schemas.Logger\n \t\tConnPoolStrategy:    fasthttp.FIFO,\n \t}\n \tclient = providerUtils.ConfigureProxy(client, config.ProxyConfig, logger)\n-\tclient = providerUtils.ConfigureDialer(client, config.NetworkConfig.AllowPrivateNetwork)\n+\tclient = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)\n \tclient = providerUtils.ConfigureTLS(client, config.NetworkConfig, logger)\n \tstreamingClient := providerUtils.BuildStreamingClient(client)\n \n",
+      "changed_lines": [
+        "-\tclient = providerUtils.ConfigureDialer(client, config.NetworkConfig.AllowPrivateNetwork)",
+        "+\tclient = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)"
+      ],
+      "exact_one_line_replacement": true,
+      "group_verification_ref": "#/verification_groups/core_runtime"
+    },
+    {
+      "provider_directory": "githubcopilot",
+      "path": "core/providers/githubcopilot/githubcopilot.go",
+      "line": 65,
+      "statement": "client = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)",
+      "legacy_constructor": false,
+      "new_official_constructor": true,
+      "gate_constructor": false,
+      "verification": "static_wiring_verified; shared-helper regression coverage, not a per-provider live result",
+      "official_blob": "741ff3ebfeaa682131c420d181e581992321b6e9",
+      "candidate_blob": "b865d31521c4c7b18bfc186e540316e93d77f20e",
+      "diff": "diff --git a/core/providers/githubcopilot/githubcopilot.go b/core/providers/githubcopilot/githubcopilot.go\nindex 741ff3ebf..b865d3152 100644\n--- a/core/providers/githubcopilot/githubcopilot.go\n+++ b/core/providers/githubcopilot/githubcopilot.go\n@@ -62,7 +62,7 @@ func NewGithubCopilotProvider(config *schemas.ProviderConfig, logger schemas.Log\n \t// Order is load-bearing. ConfigureDialer wraps whatever Dial the proxy installed, and\n \t// BuildStreamingClient clones the fully configured client, so it must come last.\n \tclient = providerUtils.ConfigureProxy(client, config.ProxyConfig, logger)\n-\tclient = providerUtils.ConfigureDialer(client, config.NetworkConfig.AllowPrivateNetwork)\n+\tclient = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)\n \tclient = providerUtils.ConfigureTLS(client, config.NetworkConfig, logger)\n \tstreamingClient := providerUtils.BuildStreamingClient(client)\n \n",
+      "changed_lines": [
+        "-\tclient = providerUtils.ConfigureDialer(client, config.NetworkConfig.AllowPrivateNetwork)",
+        "+\tclient = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)"
+      ],
+      "exact_one_line_replacement": true,
+      "group_verification_ref": "#/verification_groups/core_runtime"
+    },
+    {
+      "provider_directory": "typesafe",
+      "path": "core/providers/typesafe/typesafe.go",
+      "line": 51,
+      "statement": "client = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)",
+      "legacy_constructor": false,
+      "new_official_constructor": true,
+      "gate_constructor": false,
+      "verification": "static_wiring_verified; shared-helper regression coverage, not a per-provider live result",
+      "official_blob": "074acdcb788d5d8a5e85bc23d8922a3780832b10",
+      "candidate_blob": "5ab417a0817258f98b8e61f0247c1932d2688fd4",
+      "diff": "diff --git a/core/providers/typesafe/typesafe.go b/core/providers/typesafe/typesafe.go\nindex 074acdcb7..5ab417a08 100644\n--- a/core/providers/typesafe/typesafe.go\n+++ b/core/providers/typesafe/typesafe.go\n@@ -48,7 +48,7 @@ func NewTypesafeProvider(config *schemas.ProviderConfig, logger schemas.Logger)\n \n \t// Configure proxy if provided\n \tclient = providerUtils.ConfigureProxy(client, config.ProxyConfig, logger)\n-\tclient = providerUtils.ConfigureDialer(client, config.NetworkConfig.AllowPrivateNetwork)\n+\tclient = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)\n \tclient = providerUtils.ConfigureTLS(client, config.NetworkConfig, logger)\n \tstreamingClient := providerUtils.BuildStreamingClient(client)\n \n",
+      "changed_lines": [
+        "-\tclient = providerUtils.ConfigureDialer(client, config.NetworkConfig.AllowPrivateNetwork)",
+        "+\tclient = providerUtils.ConfigureDialerWithNetworkConfig(client, config.NetworkConfig)"
+      ],
+      "exact_one_line_replacement": true,
+      "group_verification_ref": "#/verification_groups/core_runtime"
+    }
+  ],
+  "final_static_audit": {
+    "status": "passed",
+    "evidence": "/private/tmp/bifrost-upgrade/continuation/final-audit/fork-static-audit.json",
+    "sha256": "5c912cb2da84b31ed7bfe26b95d8412ed361a4b94fd7c278252d9bf5bd734b17",
+    "frozen_identity": {
+      "head": "84d9fb743e0dbb5c4b0c9659450d7423b55349e2",
+      "expected_head": "84d9fb743e0dbb5c4b0c9659450d7423b55349e2",
+      "core_tree": "594c7f04a5b267a9e87cf73b72d3a890f712f6da",
+      "expected_core_tree": "594c7f04a5b267a9e87cf73b72d3a890f712f6da",
+      "framework_tree": "774d62524377814c2c296067bbc10dbb93861d1f",
+      "expected_framework_tree": "774d62524377814c2c296067bbc10dbb93861d1f",
+      "official_base": "a86d489d99536adda3dc85869bc7782d682370d1",
+      "matches": {
+        "head": true,
+        "core_tree": true,
+        "framework_tree": true
+      }
+    },
+    "legacy_test_assertions": {
+      "total_old_custom_top_level_tests": 59,
+      "original_lines_preserved_in_order_for_all": true,
+      "note": "All original test lines remain in order. Changed Gate and pricing tests only add assertions/cases; byte-identical flags distinguish exact copies."
+    },
+    "unapproved_production_paths": [],
+    "missing_expected_custom_paths": [],
+    "non_gate_constructor_count": 33,
+    "gate_uses_full_network_config": true,
+    "official_roundtripper_byte_identical": true
+  },
+  "unclassified_entries": [],
+  "release_gate_ref": "validation-summary.json"
 }
