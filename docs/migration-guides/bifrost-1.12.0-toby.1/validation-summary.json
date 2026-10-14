@@ -1,0 +1,69 @@
+{
+  "implementation_head": "e20023c58c92a121a7988ab2f41db74f59cfe604",
+  "gate": "blocked",
+  "validation": {
+    "core_legacy_race": "12 passed",
+    "gate": "40 top-level tests / 163 test events passed; normal and race",
+    "framework_datasheet": "577 test events passed; normal and race",
+    "utils_isolated_linux": "431 top-level tests / 5627 test events passed; zero skipped",
+    "perimeter": "11 gate + 21 chain + 43 shard + 3 HTTP status + 2 decision; schema normal/race passed",
+    "all_modules": "attempted; not fully passing; upstream Bedrock failure confirmed; environment fixture gaps logged separately",
+    "core_all_modules": "incomplete diagnostic run interrupted after confirmed official blocker and stalled host-network tests",
+    "framework_all_modules": "4545 passed / 61 failed / 210 skipped; missing local services",
+    "framework_plugins_retry": "17 passed / 14 failed; macOS dlopen chained-fixups error"
+  },
+  "logs": [
+    {
+      "path": "/private/tmp/bifrost-upgrade/upstream-bedrock-replay-control.log",
+      "sha256": "c442110f025442cdf74ba40ceb72fec5aa5a6e0a5456c1448482cbf2dda03147"
+    },
+    {
+      "path": "/private/tmp/bifrost-upgrade/core-utils-isolated-full.log",
+      "sha256": "821b5f2bde634471dac79564776510f9d51f2ace64a05b1619710d87075824f8"
+    },
+    {
+      "path": "/private/tmp/bifrost-gate-migration/gate-test.json",
+      "sha256": "15e776f5d2a7444dd495aaf33c654cc5dd51391da73f8cd97ee12d5f4daeaf86"
+    },
+    {
+      "path": "/private/tmp/bifrost-gate-migration/gate-race.json",
+      "sha256": "0f86b70d3757ac484f7524d05de8e28c5e51a87b77b3a4b3d8aeb14fb35243d3"
+    },
+    {
+      "path": "/private/tmp/bifrost-upgrade/logs/framework-datasheet.jsonl",
+      "sha256": "7f7d0e6fbac2c9917cbc9a925c89ab1058a00fd2c4c270d4cc33328274bf5686"
+    },
+    {
+      "path": "/private/tmp/bifrost-upgrade/logs/framework-datasheet-race.jsonl",
+      "sha256": "6bc920879aacc5cd14c0d952d70b62eb8ae6f06130cc2cea9ab941d93928279f"
+    },
+    {
+      "path": "/private/tmp/bifrost-upgrade/logs/core-full.jsonl",
+      "sha256": "0e936438c91be8135b005977a7979a0068ee6b9ae230cc2159c6112e24576413"
+    },
+    {
+      "path": "/private/tmp/bifrost-upgrade/logs/framework-full.jsonl",
+      "sha256": "9b0fdf44d6e0a9b0b33a87f5fac7c8005cbb2d9ee37daadef036902b19619f8f"
+    },
+    {
+      "path": "/private/tmp/bifrost-upgrade/logs/tokenex-candidate-build-shared-cache.log",
+      "sha256": "e469fa8f2adde91a84116aa24886304c3e4ee6cb1fec9560189730814e62160e"
+    },
+    {
+      "path": "/private/tmp/bifrost-upgrade/logs/framework-environment-status.json",
+      "sha256": "a557cfb0561165f6f431c69f6fa3b608a0d84b233ee956ef5ff101ca363c88fe"
+    }
+  ],
+  "consumer_build": {
+    "status": "failed",
+    "location": "llmgw/internal/logic/responses/request.go:159",
+    "error": "cannot use *request.Conversation (struct schemas.ResponsesResponseConversation) as string",
+    "formal_source_changed": false,
+    "formal_pins_changed": false
+  },
+  "release": {
+    "tags_created": false,
+    "pushed": false,
+    "reason": "required full gates not passed"
+  }
+}
