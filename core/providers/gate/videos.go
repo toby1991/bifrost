@@ -115,6 +115,31 @@ func ToGateVideoGenerationRequest(bifrostReq *schemas.BifrostVideoGenerationRequ
 	return request, nil
 }
 
+// normalizeGateVideoSize 将已知计费档位归一为 Bifrost 短边计价使用的 WxH。
+// 已有 WxH 和未知档位原样保留，不把未支持的档位归入相邻价格档。
+func normalizeGateVideoSize(resolution, aspectRatio string) string {
+	tier := strings.TrimSpace(resolution)
+	var landscape, portrait string
+	switch {
+	case strings.EqualFold(tier, "480p"):
+		landscape, portrait = "854x480", "480x854"
+	case strings.EqualFold(tier, "720p"):
+		landscape, portrait = "1280x720", "720x1280"
+	case strings.EqualFold(tier, "1024p"):
+		landscape, portrait = "1792x1024", "1024x1792"
+	case strings.EqualFold(tier, "1080p"):
+		landscape, portrait = "1920x1080", "1080x1920"
+	case strings.EqualFold(tier, "4k"), strings.EqualFold(tier, "2160p"):
+		landscape, portrait = "3840x2160", "2160x3840"
+	default:
+		return resolution
+	}
+	if aspect := strings.TrimSpace(aspectRatio); aspect == "9:16" || aspect == "3:4" {
+		return portrait
+	}
+	return landscape
+}
+
 // mapGateStatus 映射 Gate 任务状态；未知状态是协议错误（fail-closed）。
 func mapGateStatus(status string) (schemas.VideoStatus, error) {
 	switch status {
@@ -431,7 +456,7 @@ func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key sch
 		bifrostResp.Seconds = schemas.Ptr(strconv.Itoa(data.Duration))
 	}
 	if data.Resolution != "" {
-		bifrostResp.Size = data.Resolution
+		bifrostResp.Size = normalizeGateVideoSize(data.Resolution, data.AspectRatio)
 	}
 	// 完成后取 /content 第一跳的临时直链。任何取链失败只让 Videos 留空，
 	// 不得把已完成的生成结果或可信 settled 金额改写成失败。

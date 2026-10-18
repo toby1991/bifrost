@@ -466,6 +466,108 @@ func TestGateVideoGenerationUnknownStatus(t *testing.T) {
 	}
 }
 
+var gateVideoSizeBenchmarkResult string
+
+func BenchmarkGateVideoSizeProjection(b *testing.B) {
+	cases := []struct {
+		name        string
+		resolution  string
+		aspectRatio string
+	}{
+		{"720p", "720p", "16:9"},
+		{"portrait", "720p", "9:16"},
+		{"mixedcase", " 720P ", " 9:16 "},
+		{"pixels", "1280x720", "16:9"},
+		{"unknown", "768p", "16:9"},
+	}
+	projections := []struct {
+		name  string
+		apply func(string, string) string
+	}{
+		// before 保留原先直接透传 resolution 的基线，与新增归一化分别计量。
+		{"before", func(resolution, _ string) string { return resolution }},
+		{"after", normalizeGateVideoSize},
+	}
+	for _, tc := range cases {
+		for _, projection := range projections {
+			b.Run(tc.name+"/"+projection.name, func(b *testing.B) {
+				b.ReportAllocs()
+				for b.Loop() {
+					gateVideoSizeBenchmarkResult = projection.apply(tc.resolution, tc.aspectRatio)
+				}
+			})
+		}
+	}
+}
+
+func TestGateVideoRetrieveBillingSizeNormalization(t *testing.T) {
+	tests := []struct {
+		name        string
+		resolution  string
+		aspectRatio string
+		wantSize    string
+	}{
+		{"480p landscape", "480p", "16:9", "854x480"},
+		{"480p portrait", "480p", "9:16", "480x854"},
+		{"720p landscape", "720p", "16:9", "1280x720"},
+		{"720p portrait", "720p", "9:16", "720x1280"},
+		{"720p portrait 3:4", "720p", "3:4", "720x1280"},
+		{"1024p landscape", "1024p", "16:9", "1792x1024"},
+		{"1024p portrait", "1024p", "3:4", "1024x1792"},
+		{"1080p landscape", "1080p", "16:9", "1920x1080"},
+		{"1080p portrait", "1080p", "9:16", "1080x1920"},
+		{"4k landscape", "4k", "16:9", "3840x2160"},
+		{"4k portrait", "4k", "9:16", "2160x3840"},
+		{"2160p landscape", "2160p", "16:9", "3840x2160"},
+		{"2160p portrait", "2160p", "3:4", "2160x3840"},
+		{"known tier trims and folds case", " \t720P\n", " 9:16 ", "720x1280"},
+		{"4K alias", "4K", "16:9", "3840x2160"},
+		{"missing aspect defaults landscape", "720p", "", "1280x720"},
+		{"adaptive aspect defaults landscape", "720p", "adaptive", "1280x720"},
+		{"unknown aspect defaults landscape", "720p", "1:2", "1280x720"},
+		{"square aspect uses canonical landscape", "720p", "1:1", "1280x720"},
+		{"landscape pixels override portrait hint", "1280x720", "9:16", "1280x720"},
+		{"portrait pixels override landscape hint", "720x1280", "16:9", "720x1280"},
+		{"pixel whitespace is preserved", " 1280x720 ", "9:16", " 1280x720 "},
+		{"512p stays unbanded", "512p", "9:16", "512p"},
+		{"768p stays unbanded", "768p", "16:9", "768p"},
+		{"unknown tier is unchanged", "future-tier", "9:16", "future-tier"},
+		{"unknown tier whitespace is preserved", " future-tier ", "3:4", " future-tier "},
+		{"missing tier stays missing", "", "9:16", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if strings.HasSuffix(r.URL.Path, "/content") {
+					w.WriteHeader(http.StatusConflict)
+					return
+				}
+				fmt.Fprintf(w, `{"code":200,"data":{"job_id":"j1","status":"completed","model":"bytedance/seedance-2.0","duration":6,"resolution":%q,"aspect_ratio":%q,"billing_status":"settled","billed_cost":"1.0800000001","created_at":"2026-05-27T05:00:00Z","completed_at":"2026-05-27T05:01:00Z","expires_at":"2026-06-27T05:01:00Z"}}`, tt.resolution, tt.aspectRatio)
+			}))
+			defer server.Close()
+
+			provider := newTestProvider(t, server.URL)
+			ctx := testCtx()
+			resp, bifrostErr := provider.VideoRetrieve(ctx, testKey("s"), &schemas.BifrostVideoRetrieveRequest{ID: "j1:gate"})
+			if bifrostErr != nil {
+				t.Fatalf("VideoRetrieve() error = %+v", bifrostErr.Error)
+			}
+			if resp.Size != tt.wantSize {
+				t.Errorf("Size = %q, want %q", resp.Size, tt.wantSize)
+			}
+			if resp.Status != schemas.VideoStatusCompleted || len(resp.Videos) != 0 {
+				t.Errorf("content failure changed the completed task: %+v", resp)
+			}
+			if resp.Usage == nil || resp.Usage.Cost == nil || resp.Usage.Cost.TotalCost != 1.0800000001 {
+				t.Errorf("size projection lost the settled cost: %+v", resp.Usage)
+			}
+			if taskID, cost, _, ok := SettledVideoBillingFromContext(ctx); !ok || taskID != resp.ID || cost != "1.0800000001" {
+				t.Errorf("size projection changed exact billing: task=%q cost=%q ok=%v", taskID, cost, ok)
+			}
+		})
+	}
+}
+
 func TestGateVideoRetrieveMapping(t *testing.T) {
 	var recordedPaths []string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -500,8 +602,8 @@ func TestGateVideoRetrieveMapping(t *testing.T) {
 	if fmt.Sprintf("%v", recordedPaths) != fmt.Sprintf("%v", wantPaths) {
 		t.Fatalf("paths = %v, want %v", recordedPaths, wantPaths)
 	}
-	if resp.Size != "720p" {
-		t.Fatalf("Size = %q, want resolution mapped 720p", resp.Size)
+	if resp.Size != "1280x720" {
+		t.Fatalf("Size = %q, want normalized 720p billing size 1280x720", resp.Size)
 	}
 	if resp.ID != "video_abc123:gate" || resp.Status != schemas.VideoStatusCompleted {
 		t.Fatalf("response = %+v", resp)
