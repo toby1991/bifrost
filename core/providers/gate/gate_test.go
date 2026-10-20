@@ -8,12 +8,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
+	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -395,6 +399,130 @@ func TestGateVideoGenerationSubmitWithoutIdempotencyKey(t *testing.T) {
 	}
 }
 
+func TestGateVideoGenerationIdempotencyKey(t *testing.T) {
+	tests := []struct {
+		name       string
+		value      any
+		static     map[string]string
+		context    map[string][]string
+		wantHeader string
+	}{
+		{name: "absent"},
+		{name: "wrong type", value: uint64(42)},
+		{name: "empty", value: ""},
+		{name: "plain execution string", value: "42", wantHeader: "execution-42"},
+		{name: "opaque string", value: "operation-42", wantHeader: "execution-operation-42"},
+		{name: "static explicit header", value: "42", static: map[string]string{"idempotency-key": "static-key"}, wantHeader: "static-key"},
+		{name: "static explicit empty header", value: "42", static: map[string]string{"idempotency-key": ""}},
+		{name: "context explicit header", value: "42", context: map[string][]string{"iDeMpOtEnCy-KeY": {"context-key"}}, wantHeader: "context-key"},
+		{name: "context overrides static", value: "42", static: map[string]string{"IDEMPOTENCY-KEY": "static-key"}, context: map[string][]string{"idempotency-key": {"context-key"}}, wantHeader: "context-key"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			headers := make(chan http.Header, 1)
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				headers <- r.Header.Clone()
+				w.WriteHeader(http.StatusAccepted)
+				fmt.Fprint(w, `{"code":200,"msg":"","data":{"job_id":"j1","status":"pending"}}`)
+			}))
+			defer server.Close()
+
+			provider := newTestProvider(t, server.URL)
+			provider.networkConfig.ExtraHeaders = map[string]string{"X-Static": "static"}
+			maps.Copy(provider.networkConfig.ExtraHeaders, tt.static)
+			staticBefore := maps.Clone(provider.networkConfig.ExtraHeaders)
+			contextHeaders := map[string][]string{"X-Context": {"context"}}
+			maps.Copy(contextHeaders, tt.context)
+			contextBefore := make(map[string][]string, len(contextHeaders))
+			for key, values := range contextHeaders {
+				contextBefore[key] = slices.Clone(values)
+			}
+			ctx := testCtx()
+			ctx.SetValue(schemas.BifrostContextKeyExtraHeaders, contextHeaders)
+			if tt.value != nil {
+				ctx.SetValue(schemas.BifrostContextKey("Idempotency-Key"), tt.value)
+			}
+			if _, bifrostErr := provider.VideoGeneration(ctx, testKey("s"), &schemas.BifrostVideoGenerationRequest{
+				Model: "m", Input: &schemas.VideoGenerationInput{Prompt: "p"},
+			}); bifrostErr != nil {
+				t.Fatalf("VideoGeneration() error = %+v", bifrostErr.Error)
+			}
+			got := <-headers
+			if value := got.Get("Idempotency-Key"); value != tt.wantHeader {
+				t.Fatalf("Idempotency-Key = %q, want %q", value, tt.wantHeader)
+			}
+			if got.Get("X-Static") != "static" || got.Get("X-Context") != "context" {
+				t.Fatalf("ordinary headers lost: %v", got)
+			}
+			if !reflect.DeepEqual(provider.networkConfig.ExtraHeaders, staticBefore) || !reflect.DeepEqual(contextHeaders, contextBefore) {
+				t.Fatal("VideoGeneration mutated shared or context headers")
+			}
+		})
+	}
+}
+
+func TestGateSubmissionExtraHeadersConcurrent(t *testing.T) {
+	static := map[string]string{"X-Static": "shared"}
+	var workers sync.WaitGroup
+	for executionID := 1; executionID <= 32; executionID++ {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			value := strconv.Itoa(executionID)
+			ctx := testCtx()
+			ctx.SetValue(schemas.BifrostContextKey("Idempotency-Key"), value)
+			contextHeaders := map[string][]string{"X-Context": {value}}
+			ctx.SetValue(schemas.BifrostContextKeyExtraHeaders, contextHeaders)
+			headers := gateSubmissionExtraHeaders(ctx, static)
+			if headers["Idempotency-Key"] != "execution-"+value || headers["X-Static"] != "shared" {
+				t.Errorf("execution %s headers = %v", value, headers)
+			}
+			// 修改返回 map 也不能污染另一个请求或共享配置。
+			headers["X-Static"] = value
+			if len(contextHeaders) != 1 || contextHeaders["X-Context"][0] != value {
+				t.Errorf("context headers mutated: %v", contextHeaders)
+			}
+		}()
+	}
+	workers.Wait()
+	if !reflect.DeepEqual(static, map[string]string{"X-Static": "shared"}) {
+		t.Fatalf("shared headers mutated: %v", static)
+	}
+}
+
+var benchmarkGateHeaders map[string]string
+
+func BenchmarkGateSubmissionExtraHeaders(b *testing.B) {
+	tests := []struct {
+		name   string
+		value  string
+		static map[string]string
+	}{
+		{name: "without_identifier", static: map[string]string{"X-Static": "value"}},
+		{name: "with_identifier", value: "42", static: map[string]string{"X-Static": "value"}},
+		{name: "explicit_static_header", value: "42", static: map[string]string{"idempotency-key": "explicit"}},
+	}
+	b.Run("baseline", func(b *testing.B) {
+		static := map[string]string{"X-Static": "value"}
+		b.ReportAllocs()
+		for b.Loop() {
+			benchmarkGateHeaders = static
+		}
+	})
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			ctx := testCtx()
+			if tt.value != "" {
+				ctx.SetValue(schemas.BifrostContextKey("Idempotency-Key"), tt.value)
+			}
+			b.ReportAllocs()
+			for b.Loop() {
+				benchmarkGateHeaders = gateSubmissionExtraHeaders(ctx, tt.static)
+			}
+		})
+	}
+}
+
 func TestGateVideoGenerationSubmitRejected(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -572,6 +700,9 @@ func TestGateVideoRetrieveMapping(t *testing.T) {
 	var recordedPaths []string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		recordedPaths = append(recordedPaths, r.URL.Path)
+		if value := r.Header.Get("Idempotency-Key"); value != "" {
+			t.Errorf("retrieve must not derive an idempotency header, got %q", value)
+		}
 		if r.Header.Get("Authorization") != "Bearer gate-secret" {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
@@ -589,6 +720,7 @@ func TestGateVideoRetrieveMapping(t *testing.T) {
 
 	provider := newTestProvider(t, server.URL)
 	ctx := testCtx()
+	ctx.SetValue(schemas.BifrostContextKey("Idempotency-Key"), "42")
 	resp, bifrostErr := provider.VideoRetrieve(ctx, testKey("gate-secret"), &schemas.BifrostVideoRetrieveRequest{
 		Provider: schemas.Gate,
 		ID:       "video_abc123:gate",
@@ -1191,23 +1323,31 @@ func TestGateVideoDownloadBuffered(t *testing.T) {
 	payload := testPayload(128 * 1024)
 
 	cdn := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if value := r.Header.Get("Idempotency-Key"); value != "" {
+			t.Errorf("download CDN must not receive idempotency header, got %q", value)
+		}
 		w.Header().Set("Content-Type", "video/mp4")
 		w.Header().Set("Content-Length", strconv.Itoa(len(payload)))
 		w.Write(payload)
 	}))
 	defer cdn.Close()
 
-	api := gateDownloadFakeAPI(t, cdn.URL+"/v.mp4", nil)
+	var hop1 recordedRequest
+	api := gateDownloadFakeAPI(t, cdn.URL+"/v.mp4", &hop1)
 	defer api.Close()
 
 	provider := newTestProvider(t, api.URL)
 	ctx := testCtx()
+	ctx.SetValue(schemas.BifrostContextKey("Idempotency-Key"), "42")
 	resp, bifrostErr := provider.VideoDownload(ctx, testKey("gate-secret"), &schemas.BifrostVideoDownloadRequest{
 		Provider: schemas.Gate,
 		ID:       "video_abc123:gate",
 	})
 	if bifrostErr != nil {
 		t.Fatalf("VideoDownload() error = %+v", bifrostErr.Error)
+	}
+	if hop1.idempotencyKey != "" {
+		t.Fatalf("download must not derive an idempotency header, got %q", hop1.idempotencyKey)
 	}
 	if !bytes.Equal(resp.Content, payload) {
 		t.Fatalf("buffered Content = %d bytes, want %d (integrity mismatch)", len(resp.Content), len(payload))

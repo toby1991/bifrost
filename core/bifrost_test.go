@@ -7757,3 +7757,28 @@ func BenchmarkShouldTryFallbacks(b *testing.B) {
 		})
 	}
 }
+
+// Coupon 可作为标准 Provider 和自定义实例基类；工厂不建立 gRPC 连接。
+func TestCreateBaseProviderLLMGWCoupon(t *testing.T) {
+	bifrost := &Bifrost{logger: NewDefaultLogger(schemas.LogLevelError)}
+	if !slices.Contains(schemas.StandardProviders, schemas.LLMGWCoupon) || !IsSupportedBaseProvider(schemas.LLMGWCoupon) {
+		t.Fatal("llmgw-coupon missing from provider registration")
+	}
+	for _, custom := range []bool{false, true} {
+		t.Run(fmt.Sprint(custom), func(t *testing.T) {
+			name := schemas.LLMGWCoupon
+			config := &schemas.ProviderConfig{NetworkConfig: schemas.NetworkConfig{BaseURL: "llmgw:8080"}}
+			if custom {
+				name = "coupon-instance"
+				config.CustomProviderConfig = &schemas.CustomProviderConfig{BaseProviderType: schemas.LLMGWCoupon}
+			}
+			provider, err := bifrost.createBaseProvider(name, config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if provider.GetProviderKey() != name {
+				t.Fatalf("provider key=%q want %q", provider.GetProviderKey(), name)
+			}
+		})
+	}
+}

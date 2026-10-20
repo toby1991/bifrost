@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"net/url"
@@ -230,8 +231,27 @@ func newRequestNotDispatchedError(message string, err error) *schemas.BifrostErr
 	}
 }
 
+// gateSubmissionExtraHeaders 只为本次视频提交派生 Gate 幂等头。
+// Idempotency-Key ctx 值是调用方提供的 string 标识，不会自动外发；由 Gate
+// 自行添加 execution- 前缀。显式配置的同名头保留原值，ctx ExtraHeaders
+// 仍由 SetExtraHeaders 最后应用并覆盖。共享配置和 ctx 中的 map 均不修改。
+func gateSubmissionExtraHeaders(ctx *schemas.BifrostContext, extraHeaders map[string]string) map[string]string {
+	value, ok := ctx.Value(schemas.BifrostContextKey("Idempotency-Key")).(string)
+	if !ok || value == "" {
+		return extraHeaders
+	}
+	for key := range extraHeaders {
+		if strings.EqualFold(key, "Idempotency-Key") {
+			return extraHeaders
+		}
+	}
+	headers := make(map[string]string, len(extraHeaders)+1)
+	maps.Copy(headers, extraHeaders)
+	headers["Idempotency-Key"] = "execution-" + value
+	return headers
+}
+
 // VideoGeneration submits a video generation task to Gate.
-// 幂等键只经既有 BifrostContextKeyExtraHeaders 契约透传为 Gate Idempotency-Key；
 // fallback/重试由调用方在 Core 入口层关闭，provider 本身不做任何重试。
 func (provider *GateProvider) VideoGeneration(ctx *schemas.BifrostContext, key schemas.Key, bifrostReq *schemas.BifrostVideoGenerationRequest) (*schemas.BifrostVideoGenerationResponse, *schemas.BifrostError) {
 	// 先清 sidecar 再做准入：被拒绝的调用也不得泄漏上一次提交账单。
@@ -262,7 +282,7 @@ func (provider *GateProvider) VideoGeneration(ctx *schemas.BifrostContext, key s
 	defer fasthttp.ReleaseRequest(req)
 	defer fasthttp.ReleaseResponse(resp)
 
-	providerUtils.SetExtraHeaders(ctx, req, provider.networkConfig.ExtraHeaders, nil)
+	providerUtils.SetExtraHeaders(ctx, req, gateSubmissionExtraHeaders(ctx, provider.networkConfig.ExtraHeaders), nil)
 
 	req.SetRequestURI(provider.networkConfig.BaseURL + providerUtils.GetPathFromContext(ctx, gateVideosPath))
 	req.Header.SetMethod(http.MethodPost)
@@ -270,10 +290,6 @@ func (provider *GateProvider) VideoGeneration(ctx *schemas.BifrostContext, key s
 	if key.Value.GetValue() != "" {
 		req.Header.Set("Authorization", "Bearer "+key.Value.GetValue())
 	}
-	// 幂等键经既有 BifrostContextKeyExtraHeaders 契约传递：调用方写入
-	// ExtraHeaders["Idempotency-Key"]，SetExtraHeaders 已在上文透传。本 provider
-	// 不另设通道。
-
 	req.SetBody(jsonData)
 
 	latency, bifrostErr, wait := providerUtils.MakeRequestWithContext(ctx, provider.client, req, resp)

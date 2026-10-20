@@ -81,6 +81,7 @@ const (
 	Sarvam        ModelProvider = "sarvam"
 	Wafer         ModelProvider = "wafer"
 	Gate          ModelProvider = "gate"
+	LLMGWCoupon   ModelProvider = "llmgw-coupon"
 	GithubCopilot ModelProvider = "github-copilot"
 	Databricks    ModelProvider = "databricks"
 	Cloudflare    ModelProvider = "cloudflare"
@@ -97,6 +98,7 @@ var SupportedBaseProviders = []ModelProvider{
 	HuggingFace,
 	Replicate,
 	Gate,
+	LLMGWCoupon,
 	Typesafe,
 }
 
@@ -133,6 +135,7 @@ var StandardProviders = []ModelProvider{
 	Sarvam,
 	Wafer,
 	Gate,
+	LLMGWCoupon,
 	GithubCopilot,
 	Databricks,
 	Cloudflare,

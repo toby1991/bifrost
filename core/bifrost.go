@@ -36,6 +36,7 @@ import (
 	"github.com/maximhq/bifrost/core/providers/githubcopilot"
 	"github.com/maximhq/bifrost/core/providers/groq"
 	"github.com/maximhq/bifrost/core/providers/huggingface"
+	"github.com/maximhq/bifrost/core/providers/llmgwcoupon"
 	"github.com/maximhq/bifrost/core/providers/mistral"
 	"github.com/maximhq/bifrost/core/providers/nebius"
 	"github.com/maximhq/bifrost/core/providers/ollama"
@@ -5028,6 +5029,8 @@ func (bifrost *Bifrost) createBaseProvider(providerKey schemas.ModelProvider, co
 		return wafer.NewWaferProvider(config, bifrost.logger)
 	case schemas.Gate:
 		return gate.NewGateProvider(config, bifrost.logger)
+	case schemas.LLMGWCoupon:
+		return llmgwcoupon.NewLLMGWCouponProvider(config, bifrost.logger)
 	case schemas.Cloudflare:
 		return cloudflare.NewCloudflareProvider(config, bifrost.logger)
 	case schemas.Gemini:
