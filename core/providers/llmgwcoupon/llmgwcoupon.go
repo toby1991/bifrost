@@ -18,7 +18,7 @@ import (
 )
 
 // ClientContextKey carries the host application's reusable coupon RPC adapter.
-// SDK 只保存小型接口句柄；gRPC 连接、生成的 proto 和鉴权实现均由宿主负责。
+// SDK 只保存小型接口句柄；gRPC 连接、生成的 proto 和内部调用边界均由宿主负责。
 const ClientContextKey schemas.BifrostContextKey = "llmgw-coupon-client"
 
 // idempotencyContextKey is an opt-in internal value, never an automatic header.
@@ -27,6 +27,7 @@ const idempotencyContextKey schemas.BifrostContextKey = "Idempotency-Key"
 
 // Client decouples the Provider from the host application's generated RPC client.
 // 错误保持宿主提供的 BifrostError 分类；通信结果不明确时不得伪造为未领取。
+// token 参数为兼容既有适配器而保留，可以为空；码库 Provider 不要求凭证。
 type Client interface {
 	Claim(ctx context.Context, endpoint, token, poolCode string, executionID uint64) (uint64, *schemas.BifrostError)
 	Get(ctx context.Context, endpoint, token string, claimID uint64) (*Claim, *schemas.BifrostError)
@@ -121,7 +122,7 @@ func (provider *LLMGWCouponProvider) VideoRetrieve(ctx *schemas.BifrostContext, 
 	if err != nil {
 		return nil, notDispatched("coupon claim id must be a positive uint64 decimal string")
 	}
-	// 独立 SDK 可凭 claim ID + credential 查询；宿主若传入原 Execution ID，必须校验匹配。
+	// 独立 SDK 可凭 claim ID 查询；宿主若传入原 Execution ID，必须校验匹配。
 	var executionID uint64
 	if ctx != nil && ctx.Value(idempotencyContextKey) != nil {
 		var bifrostErr *schemas.BifrostError
@@ -197,11 +198,8 @@ func clientAndToken(ctx *schemas.BifrostContext, key schemas.Key) (Client, strin
 	if !ok || client == nil {
 		return nil, "", notDispatched("coupon RPC client is missing from context")
 	}
-	token := key.Value.GetValue()
-	if token == "" {
-		return nil, "", notDispatched("coupon service credential is required")
-	}
-	return client, token, nil
+	// 零值 Key 是正常的内部 RPC 调用；仅为旧适配器保留可选 token 参数。
+	return client, key.Value.GetValue(), nil
 }
 
 func notDispatched(message string) *schemas.BifrostError {

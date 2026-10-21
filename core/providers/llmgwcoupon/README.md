@@ -5,9 +5,12 @@
 not import an application service, duplicate its proto, or create connections.
 
 Configure `NetworkConfig.BaseURL` as a gRPC `host:port` such as `llmgw:8080`.
-The selected credential's scalar value is passed to the adapter as its service
-token. The provider applies the configured request timeout to each adapter call.
-The host owns connection reuse, token metadata, and outcome classification.
+Configure the existing custom-provider `IsKeyLess` option to skip Core credential
+selection. Coupon accepts a zero-value key; no placeholder credential is needed.
+The adapter's optional token argument remains for source compatibility and may be
+empty. The provider applies the configured request timeout to each adapter call.
+The host owns connection reuse, the internal RPC trust boundary, and outcome
+classification.
 
 Inject a reusable `Client` under exported `ClientContextKey`. Before submission,
 set `schemas.BifrostContextKey("Idempotency-Key")` to the decimal Execution ID
