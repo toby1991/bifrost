@@ -98,7 +98,6 @@ func TestCouponSubmitValidatesBeforeRPC(t *testing.T) {
 		{"nil request", nil, &fakeClient{}, testKey()},
 		{"empty model", &schemas.BifrostVideoGenerationRequest{}, &fakeClient{}, testKey()},
 		{"missing client", &schemas.BifrostVideoGenerationRequest{Model: "BiWei"}, nil, testKey()},
-		{"missing credential", &schemas.BifrostVideoGenerationRequest{Model: "BiWei"}, &fakeClient{}, schemas.Key{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			r, err := p.VideoGeneration(testContext(tc.client, "123"), tc.key, tc.request)
@@ -288,5 +287,32 @@ func TestCouponRPCTimeoutContext(t *testing.T) {
 	}
 	if _, err := p.VideoRetrieve(ctx, testKey(), &schemas.BifrostVideoRetrieveRequest{ID: "19"}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// 标准和自定义实例无需占位 Key；RPC 参数仍沿用已有 Client 接口。
+func TestCouponZeroKeyClaimAndRetrieve(t *testing.T) {
+	p := testProvider(t)
+	c := &fakeClient{claim: func(_ context.Context, endpoint, token, pool string, id uint64) (uint64, *schemas.BifrostError) {
+		if endpoint != "llmgw:8080" || token != "" || pool != "BiWei" || id != 123 {
+			t.Fatalf("wrong keyless Claim arguments: %q %q %q %d", endpoint, token, pool, id)
+		}
+		return 19, nil
+	}, get: func(_ context.Context, endpoint, token string, id uint64) (*Claim, *schemas.BifrostError) {
+		if endpoint != "llmgw:8080" || token != "" || id != 19 {
+			t.Fatalf("wrong keyless Get arguments: %q %q %d", endpoint, token, id)
+		}
+		return &Claim{ID: 19, PoolCode: "BiWei", ExecutionID: 123, CodeValue: "original-code", ClaimedAt: 100}, nil
+	}}
+	submitted, err := p.VideoGeneration(testContext(c, "123"), schemas.Key{}, &schemas.BifrostVideoGenerationRequest{Model: "BiWei"})
+	if err != nil || submitted == nil || submitted.ID != "19:llmgw-coupon" {
+		t.Fatalf("keyless claim: response=%#v err=%v", submitted, err)
+	}
+	retrieved, err := p.VideoRetrieve(testContext(c, "123"), schemas.Key{}, &schemas.BifrostVideoRetrieveRequest{ID: submitted.ID})
+	if err != nil || retrieved == nil || len(retrieved.Videos) != 1 || retrieved.Videos[0].URL == nil || *retrieved.Videos[0].URL != "original-code" {
+		t.Fatalf("keyless retrieve: response=%#v err=%v", retrieved, err)
+	}
+	if c.calls.Load() != 2 {
+		t.Fatalf("calls=%d", c.calls.Load())
 	}
 }

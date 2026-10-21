@@ -63,7 +63,11 @@ func Ptr[T any](v T) *T {
 }
 
 // providerRequiresKey returns true if the given provider requires an API key for authentication.
-func providerRequiresKey(customConfig *schemas.CustomProviderConfig) bool {
+func providerRequiresKey(baseProvider schemas.ModelProvider, customConfig *schemas.CustomProviderConfig) bool {
+	// 码库 RPC 使用宿主内部信任边界，标准实例和自定义别名均不选择凭证。
+	if baseProvider == schemas.LLMGWCoupon {
+		return false
+	}
 	// Keyless custom providers are not allowed for Bedrock.
 	if customConfig != nil && customConfig.IsKeyLess && customConfig.BaseProviderType != schemas.Bedrock {
 		return false
