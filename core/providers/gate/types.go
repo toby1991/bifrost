@@ -1,5 +1,7 @@
 package gate
 
+import "encoding/json"
+
 // Gate wire DTO。这些类型只描述 Gate.AI 线上协议，绝不向 LLMGW 外泄；
 // 通用结果走 schemas，计费事实只经 provider-local context accessor 暴露。
 //
@@ -52,10 +54,13 @@ type GateVideoRetrieveData struct {
 	Resolution    string `json:"resolution"` // 计费档位，归一为标准响应 Size
 	AspectRatio   string `json:"aspect_ratio"`
 	Duration      int    `json:"duration"`
-	BilledCost    string `json:"billed_cost"`
-	BillingStatus string `json:"billing_status"` // pre_deducted / settled
-	Currency      string `json:"currency"`       // 当前文档未列出，线上若返回则原样保留
-	ExpiresAt     string `json:"expires_at"`
-	CreatedAt     string `json:"created_at"`
-	CompletedAt   string `json:"completed_at"`
+	GenerateAudio *bool  `json:"generate_audio"`
+	// Token 字段是可选的上游扩展；单独解析，避免无效扩展破坏已有查询结果。
+	Usage         json.RawMessage `json:"usage"`
+	BilledCost    string          `json:"billed_cost"`
+	BillingStatus string          `json:"billing_status"` // pre_deducted / settled
+	Currency      string          `json:"currency"`       // 当前文档未列出，线上若返回则原样保留
+	ExpiresAt     string          `json:"expires_at"`
+	CreatedAt     string          `json:"created_at"`
+	CompletedAt   string          `json:"completed_at"`
 }

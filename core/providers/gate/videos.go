@@ -89,6 +89,15 @@ func ToGateVideoGenerationRequest(bifrostReq *schemas.BifrostVideoGenerationRequ
 
 		for key, value := range params.ExtraParams {
 			switch key {
+			case ExtraParamInputReferences:
+				if len(request.InputReferences) != 0 {
+					return nil, fmt.Errorf("input_reference conflicts with input_references")
+				}
+				references, err := parseInputReferences(value)
+				if err != nil {
+					return nil, err
+				}
+				request.InputReferences = references
 			case "resolution":
 				resolution, ok := value.(string)
 				if !ok {
@@ -111,6 +120,9 @@ func ToGateVideoGenerationRequest(bifrostReq *schemas.BifrostVideoGenerationRequ
 				return nil, fmt.Errorf("unsupported extra param %q for gate provider", key)
 			}
 		}
+	}
+	if err := validateInputReferences(request.InputReferences); err != nil {
+		return nil, err
 	}
 
 	return request, nil
@@ -367,6 +379,7 @@ func (provider *GateProvider) VideoGeneration(ctx *schemas.BifrostContext, key s
 func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key schemas.Key, bifrostReq *schemas.BifrostVideoRetrieveRequest) (*schemas.BifrostVideoGenerationResponse, *schemas.BifrostError) {
 	// context 可被上层复用；任何失败或非 settled 响应都不得泄漏上一次账单。
 	clearVideoSettledBilling(ctx)
+	clearVideoUsage(ctx)
 
 	if err := providerUtils.CheckOperationAllowed(schemas.Gate, provider.customProviderConfig, schemas.VideoRetrieveRequest); err != nil {
 		return nil, err
@@ -507,6 +520,10 @@ func (provider *GateProvider) VideoRetrieve(ctx *schemas.BifrostContext, key sch
 			bifrostResp.Usage = &schemas.VideoUsage{Cost: &schemas.BifrostCost{TotalCost: cost}}
 		}
 		setVideoSettledBilling(ctx, bifrostResp.ID, data.BilledCost, data.Currency)
+	}
+	if status == schemas.VideoStatusCompleted {
+		usage, metadata := normalizeVideoUsage(data)
+		setVideoUsage(ctx, bifrostResp.ID, usage, metadata)
 	}
 	return bifrostResp, nil
 }
