@@ -124,6 +124,13 @@ func ToGateVideoGenerationRequest(bifrostReq *schemas.BifrostVideoGenerationRequ
 	if err := validateInputReferences(request.InputReferences); err != nil {
 		return nil, err
 	}
+	// 仅校验已确认的模型能力；旧 SDK 未显式给齐两项时仍由上游选择默认值。
+	// 请求和终态计量共用真实规格表，避免接受无法等价表达的组合。
+	if request.Model == "bytedance/seedance-2.0" && request.Resolution != "" && request.AspectRatio != "" {
+		if _, ok := seedance20Dimensions[request.Resolution][request.AspectRatio]; !ok {
+			return nil, fmt.Errorf("unsupported resolution/aspect_ratio combination %q/%q for %s", request.Resolution, request.AspectRatio, request.Model)
+		}
+	}
 
 	return request, nil
 }

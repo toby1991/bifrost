@@ -4,6 +4,8 @@
 
 后续新增视频 adapter 必须自行实现其协议的素材、规格和计量映射；不要依赖 Core 根据角色自动推断上游字段。
 
+对精确模型 `bytedance/seedance-2.0`，请求同时显式提供 resolution 与 aspect_ratio 时，共用已确认的 24 项规格表进行提交前校验；1024p、9:21、adaptive 等没有等价规格的组合直接拒绝且不调用上游。旧 SDK 未给齐两项时保留上游默认选择；其他模型和时长范围不套用 Seedance 的能力假设。
+
 成功解析 completed 查询后，`gate.VideoUsageFromContext` 返回与标准响应相同的带 provider 后缀任务 ID、可空 `*schemas.BifrostLLMUsage`、`VideoUsageMetadata` 和存在标记。调用开始清除上一次结果，身份不匹配、协议错误和非 completed 状态不留下用量。`ok=true` 仅说明终态事实存在；Token 计费必须再检查 usage 非空。标准 `VideoUsage.Cost`、原始 settled 金额 accessor 和响应投影保持原有行为。
 
 计量首先采用明确的 `usage.completion_tokens` 或 `usage.output_tokens`；二者同时存在必须一致。明确的零有效。负数、小数、溢出或冲突不产生 Token，也不以模型推导掩盖非法上游值。`total_tokens` 不代表输出，永不直接采用。Gate 当前公开文档没有保证提供这些扩展字段。

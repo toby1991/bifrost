@@ -113,6 +113,12 @@ func TestGateSeedance20SpecificationTable(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.resolution+"/"+tt.ratio, func(t *testing.T) {
+			if _, err := ToGateVideoGenerationRequest(&schemas.BifrostVideoGenerationRequest{
+				Model: "bytedance/seedance-2.0", Input: &schemas.VideoGenerationInput{Prompt: "test"},
+				Params: &schemas.VideoGenerationParameters{ExtraParams: map[string]any{"resolution": tt.resolution, "aspect_ratio": tt.ratio}},
+			}); err != nil {
+				t.Fatalf("confirmed specification rejected: %v", err)
+			}
 			usage, metadata := normalizeVideoUsage(&GateVideoRetrieveData{
 				Model: "bytedance/seedance-2.0", Resolution: tt.resolution, AspectRatio: tt.ratio, Duration: 4,
 			})
