@@ -28,6 +28,26 @@ const gateEnvelopeCodeSuccess = 200
 // 同一上限用于 CDN 错误消息。
 const gateDownloadResponseSpill = 4 * 1024
 
+// ValidateUnifiedVideoGenerationRequest 校验统一视频入口要求的完整规格，且不修改请求。
+// 直接 SDK 的原 converter 继续允许省略规格，由上游选择默认值。
+func ValidateUnifiedVideoGenerationRequest(request *schemas.BifrostVideoGenerationRequest) error {
+	if request == nil || request.Params == nil || request.Params.Seconds == nil {
+		return fmt.Errorf("gate requires duration, resolution and ratio")
+	}
+	params := request.Params
+	resolution, resolutionOK := params.ExtraParams[schemas.VideoExtraParamResolution].(string)
+	aspectRatio, aspectRatioOK := params.ExtraParams[schemas.VideoExtraParamAspectRatio].(string)
+	if !resolutionOK || strings.TrimSpace(resolution) == "" || !aspectRatioOK || strings.TrimSpace(aspectRatio) == "" {
+		return fmt.Errorf("gate requires duration, resolution and ratio")
+	}
+	duration, err := strconv.Atoi(*params.Seconds)
+	if err != nil || duration <= 0 {
+		return fmt.Errorf("gate duration must be a positive integer")
+	}
+	_, err = ToGateVideoGenerationRequest(request)
+	return err
+}
+
 // ToGateVideoGenerationRequest 把 provider-neutral 请求映射为 Gate 请求体。
 // duration 来自 Seconds（字符串秒），resolution/aspect_ratio/metadata 来自
 // ExtraParams 白名单；未知 ExtraParams key 直接拒绝。
@@ -98,13 +118,13 @@ func ToGateVideoGenerationRequest(bifrostReq *schemas.BifrostVideoGenerationRequ
 					return nil, err
 				}
 				request.InputReferences = references
-			case "resolution":
+			case schemas.VideoExtraParamResolution:
 				resolution, ok := value.(string)
 				if !ok {
 					return nil, fmt.Errorf("resolution must be a string")
 				}
 				request.Resolution = resolution
-			case "aspect_ratio":
+			case schemas.VideoExtraParamAspectRatio:
 				aspectRatio, ok := value.(string)
 				if !ok {
 					return nil, fmt.Errorf("aspect_ratio must be a string")

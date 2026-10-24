@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+
+	"github.com/maximhq/bifrost/core/schemas"
 )
 
-// ExtraParamInputReferences carries []GateInputReference in the existing
-// VideoGenerationParameters.ExtraParams. Future video adapters must explicitly
-// map and validate their media roles; the Core dispatcher does not infer them.
-const ExtraParamInputReferences = "input_references"
+// ExtraParamInputReferences 保留既有扩展键；素材可以是中性或 Gate wire 类型。
+// Deprecated: use schemas.VideoExtraParamInputReferences.
+const ExtraParamInputReferences = schemas.VideoExtraParamInputReferences
 
 func parseInputReferences(value any) ([]GateInputReference, error) {
 	data, err := json.Marshal(value)
@@ -34,12 +35,12 @@ func validateInputReferences(references []GateInputReference) error {
 	for i, reference := range references {
 		validRole := false
 		switch reference.Type {
-		case "image":
-			validRole = reference.Role == "first_frame" || reference.Role == "last_frame" || reference.Role == "reference"
-		case "video":
-			validRole = reference.Role == "reference_video"
-		case "audio":
-			validRole = reference.Role == "reference_audio"
+		case schemas.VideoMediaTypeImage:
+			validRole = reference.Role == schemas.VideoMediaRoleFirstFrame || reference.Role == schemas.VideoMediaRoleLastFrame || reference.Role == schemas.VideoMediaRoleReference
+		case schemas.VideoMediaTypeVideo:
+			validRole = reference.Role == schemas.VideoMediaRoleReferenceVideo
+		case schemas.VideoMediaTypeAudio:
+			validRole = reference.Role == schemas.VideoMediaRoleReferenceAudio
 		}
 		if !validRole {
 			return fmt.Errorf("input_references[%d] has unsupported type/role combination %q/%q", i, reference.Type, reference.Role)
@@ -51,7 +52,7 @@ func validateInputReferences(references []GateInputReference) error {
 		if parsed.Hostname() == "" {
 			return fmt.Errorf("input_references[%d] url must contain a hostname", i)
 		}
-		if reference.Role == "first_frame" || reference.Role == "last_frame" {
+		if reference.Role == schemas.VideoMediaRoleFirstFrame || reference.Role == schemas.VideoMediaRoleLastFrame {
 			if seenFrames[reference.Role] {
 				return fmt.Errorf("input_references contains duplicate %s", reference.Role)
 			}

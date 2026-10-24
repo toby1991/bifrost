@@ -10,63 +10,22 @@ import (
 	schemas "github.com/maximhq/bifrost/core/schemas"
 )
 
-// VideoUsageMetadata 保存终态返回的计量事实，不从提交参数补造缺失字段。
-// 真实像素与计费使用的代表性 Size 是不同概念，不能相互替代。
-type VideoUsageMetadata struct {
-	Source              string `json:"source,omitempty"`
-	RuleVersion         string `json:"rule_version,omitempty"`
-	Resolution          string `json:"resolution,omitempty"`
-	AspectRatio         string `json:"aspect_ratio,omitempty"`
-	Duration            int    `json:"duration,omitempty"`
-	GenerateAudio       *bool  `json:"generate_audio,omitempty"`
-	Width               int    `json:"width,omitempty"`
-	Height              int    `json:"height,omitempty"`
-	Frames              int64  `json:"frames,omitempty"`
-	RawOutputTokens     string `json:"raw_output_tokens,omitempty"`
-	RoundedOutputTokens int    `json:"rounded_output_tokens,omitempty"`
-}
+// VideoUsageMetadata 保留已发布 SDK 的类型名称与 JSON 形状。
+// Deprecated: use schemas.VideoUsageMetadata.
+type VideoUsageMetadata = schemas.VideoUsageMetadata
 
-type videoUsageContextKey struct{}
-
-type videoUsageResult struct {
-	taskID   string
-	usage    *schemas.BifrostLLMUsage
-	metadata VideoUsageMetadata
-}
-
-// VideoUsageFromContext 返回最近一次成功 completed 查询的任务身份、Token 和
-// 终态事实。ok 不代表 Token 完整；usage==nil 时消费者必须按所选价目判断能否计费。
+// VideoUsageFromContext 保留已发布 SDK 的 accessor。
+// Deprecated: use schemas.VideoUsageFromContext.
 func VideoUsageFromContext(ctx *schemas.BifrostContext) (taskID string, usage *schemas.BifrostLLMUsage, metadata VideoUsageMetadata, ok bool) {
-	if ctx == nil {
-		return "", nil, VideoUsageMetadata{}, false
-	}
-	result, ok := ctx.Value(videoUsageContextKey{}).(videoUsageResult)
-	if !ok || result.taskID == "" {
-		return "", nil, VideoUsageMetadata{}, false
-	}
-	// 不向消费者暴露 context 内部可变指针，防止后续读取被污染。
-	if result.usage != nil {
-		copy := *result.usage
-		usage = &copy
-	}
-	metadata = result.metadata
-	if metadata.GenerateAudio != nil {
-		value := *metadata.GenerateAudio
-		metadata.GenerateAudio = &value
-	}
-	return result.taskID, usage, metadata, true
+	return schemas.VideoUsageFromContext(ctx)
 }
 
 func clearVideoUsage(ctx *schemas.BifrostContext) {
-	if ctx != nil {
-		ctx.ClearValue(videoUsageContextKey{})
-	}
+	schemas.ClearVideoUsageOnContext(ctx)
 }
 
 func setVideoUsage(ctx *schemas.BifrostContext, taskID string, usage *schemas.BifrostLLMUsage, metadata VideoUsageMetadata) {
-	if ctx != nil {
-		ctx.SetValue(videoUsageContextKey{}, videoUsageResult{taskID: taskID, usage: usage, metadata: metadata})
-	}
+	schemas.SetVideoUsageOnContext(ctx, taskID, usage, metadata)
 }
 
 func normalizeVideoUsage(data *GateVideoRetrieveData) (*schemas.BifrostLLMUsage, VideoUsageMetadata) {
@@ -79,7 +38,7 @@ func normalizeVideoUsage(data *GateVideoRetrieveData) (*schemas.BifrostLLMUsage,
 		if !valid {
 			return nil, metadata
 		}
-		metadata.Source = "provider_reported"
+		metadata.Source = schemas.VideoUsageSourceProviderReported
 		metadata.RawOutputTokens = strconv.Itoa(tokens)
 		metadata.RoundedOutputTokens = tokens
 		return &schemas.BifrostLLMUsage{CompletionTokens: tokens}, metadata
@@ -103,7 +62,7 @@ func normalizeVideoUsage(data *GateVideoRetrieveData) (*schemas.BifrostLLMUsage,
 	if !quotient.IsInt64() || int64(int(quotient.Int64())) != quotient.Int64() {
 		return nil, metadata
 	}
-	metadata.Source = "model_rule"
+	metadata.Source = schemas.VideoUsageSourceModelRule
 	metadata.RuleVersion = "seedance-2.0-24fps-plus-one-v1"
 	metadata.Width, metadata.Height = dimensions[0], dimensions[1]
 	metadata.Frames = frames

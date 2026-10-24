@@ -213,3 +213,30 @@ func TestGateVideoUsageConcurrentContexts(t *testing.T) {
 	}
 	workers.Wait()
 }
+
+func TestGateVideoUsageContextOwnsWriterValues(t *testing.T) {
+	ctx := schemas.NewBifrostContext(nil, schemas.NoDeadline)
+	usage := &schemas.BifrostLLMUsage{CompletionTokens: 7}
+	metadata := VideoUsageMetadata{GenerateAudio: schemas.Ptr(false)}
+	setVideoUsage(ctx, "task", usage, metadata)
+	usage.CompletionTokens = 99
+	*metadata.GenerateAudio = true
+	_, got, facts, ok := VideoUsageFromContext(ctx)
+	if !ok || got.CompletionTokens != 7 || facts.GenerateAudio == nil || *facts.GenerateAudio {
+		t.Fatalf("writer changed captured values: %#v, %#v, %v", got, facts, ok)
+	}
+}
+
+func BenchmarkGateVideoUsageContext(b *testing.B) {
+	ctx := schemas.NewBifrostContext(nil, schemas.NoDeadline)
+	usage := &schemas.BifrostLLMUsage{CompletionTokens: 87300}
+	metadata := VideoUsageMetadata{Source: "model_rule", Resolution: "720p", GenerateAudio: schemas.Ptr(false)}
+	b.ReportAllocs()
+	for b.Loop() {
+		setVideoUsage(ctx, "task", usage, metadata)
+		if _, _, _, ok := VideoUsageFromContext(ctx); !ok {
+			b.Fatal("video usage missing")
+		}
+		clearVideoUsage(ctx)
+	}
+}
